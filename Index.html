@@ -3,15 +3,16 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Petualangan Bangun Ruang 3D - Game Matematika Interaktif</title>
-  <!-- Tailwind CSS CDN -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Petualangan Bangun Ruang 3D - Game Edukasi Matematika</title>
+  
+  <!-- Tailwind CSS Framework CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Three.js CDN untuk grafis 3D interaktif -->
+  
+  <!-- Three.js Library CDN (Versi stabil r128) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <!-- Canvas Confetti untuk efek selebrasi -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-  <!-- Google Font: Plus Jakarta Sans -->
+
+  <!-- Google Font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -21,298 +22,307 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-          },
-          colors: {
-            brand: {
-              50: '#eef2ff',
-              100: '#e0e7ff',
-              500: '#6366f1',
-              600: '#4f46e5',
-              700: '#4338ca',
-            }
+            sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
           }
         }
       }
-    }
+    };
   </script>
-
   <style>
     body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
       user-select: none;
       -webkit-user-select: none;
       touch-action: manipulation;
     }
-    
-    /* Scrollbar halus untuk panel info */
+
+    /* Scrollbar halus */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
     }
     ::-webkit-scrollbar-track {
-      background: #f1f5f9;
-      border-radius: 9999px;
+      background: rgba(15, 23, 42, 0.6);
     }
     ::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
+      background: #475569;
       border-radius: 9999px;
     }
     ::-webkit-scrollbar-thumb:hover {
-      background: #94a3b8;
+      background: #64748b;
     }
 
-    /* Animasi denyut & floating */
-    @keyframes floatSlow {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-6px); }
-    }
-    .animate-float {
-      animation: floatSlow 3s ease-in-out infinite;
-    }
-
-    /* Canvas styling */
-    #three-canvas-container canvas {
+    /* Kanvas 3D kursor rotasi */
+    #canvas-viewport canvas {
       outline: none;
       cursor: grab;
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
     }
-    #three-canvas-container canvas:active {
+    #canvas-viewport canvas:active {
       cursor: grabbing;
+    }
+
+    /* Animasi lembut */
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.3; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.05); }
+    }
+    .animate-pulse-glow {
+      animation: pulseGlow 4s ease-in-out infinite;
     }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-indigo-600 selection:text-white">
 
-  <header class="bg-slate-800/90 backdrop-blur border-b border-slate-700/80 sticky top-0 z-30 px-3 sm:px-6 py-2.5 shadow-md">
+  <!-- Topbar Header -->
+  <header class="bg-slate-900/90 backdrop-blur border-b border-slate-800 sticky top-0 z-40 px-3 sm:px-6 py-2.5 shadow-lg">
     <div class="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
       
-      <!-- Logo dan Judul Game -->
+      <!-- Brand & Judul -->
       <div class="flex items-center gap-2.5">
-        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 text-xl font-black text-white">
-          📐
+        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/25 ring-1 ring-white/20">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+          </svg>
         </div>
         <div>
-          <h1 class="text-base sm:text-lg font-bold tracking-tight text-white leading-tight flex items-center gap-1.5">
-            Geometri 3D <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">EduPlay</span>
+          <h1 class="text-sm sm:text-base font-extrabold text-white flex items-center gap-1.5 leading-tight">
+            Geometri 3D <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">EduPlay</span>
           </h1>
-          <p class="text-[11px] text-slate-400 hidden sm:block">Petualangan Matematika Bangun Ruang Interaktif</p>
+          <p class="text-[11px] text-slate-400 hidden sm:block">Eksplorasi & Tantangan Bangun Ruang Interaktif</p>
         </div>
       </div>
 
-      <!-- Bilah Skor, Nyawa, dan Streak -->
-      <div id="game-stats-bar" class="flex items-center gap-2 sm:gap-4">
+      <!-- Statistik Permainan: Nyawa, Streak, Skor -->
+      <div id="stats-container" class="flex items-center gap-1.5 sm:gap-3">
         <!-- Nyawa -->
-        <div class="flex items-center bg-slate-900/80 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl border border-slate-700 text-xs sm:text-sm font-semibold shadow-inner">
-          <span class="text-slate-400 mr-1.5 text-xs hidden xs:inline">Nyawa:</span>
-          <div id="lives-container" class="flex items-center gap-0.5 sm:gap-1 text-red-500 text-sm sm:text-base">
+        <div class="flex items-center bg-slate-900 px-2.5 py-1.5 rounded-xl border border-slate-800 text-xs shadow-inner">
+          <span class="text-slate-400 mr-1.5 hidden md:inline">Nyawa:</span>
+          <div id="lives-display" class="flex items-center gap-0.5 text-rose-500 text-sm">
             <span>❤️</span><span>❤️</span><span>❤️</span>
           </div>
         </div>
 
         <!-- Streak -->
-        <div class="flex items-center bg-amber-500/10 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl border border-amber-500/30 text-amber-300 text-xs sm:text-sm font-bold shadow-inner">
+        <div class="flex items-center bg-amber-500/10 px-2.5 py-1.5 rounded-xl border border-amber-500/25 text-amber-400 text-xs font-bold shadow-inner">
           <span class="mr-1">🔥</span>
-          <span id="streak-counter">0x</span>
+          <span id="streak-display">0x</span>
         </div>
 
         <!-- Skor -->
-        <div class="flex items-center bg-indigo-500/10 px-3 py-1 sm:px-4 sm:py-1.5 rounded-xl border border-indigo-500/30 text-indigo-300 text-xs sm:text-sm font-black shadow-inner">
-          <span class="text-slate-400 mr-1 text-xs font-medium hidden sm:inline">SKOR:</span>
-          <span id="score-counter" class="text-sm sm:text-base tracking-wide text-indigo-200">0</span>
+        <div class="flex items-center bg-indigo-500/10 px-3 py-1.5 rounded-xl border border-indigo-500/25 text-indigo-300 text-xs sm:text-sm font-extrabold shadow-inner">
+          <span class="text-slate-400 font-medium mr-1 text-[11px] hidden sm:inline">SKOR:</span>
+          <span id="score-display" class="text-white tracking-wide">0</span>
         </div>
       </div>
 
-      <!-- Audio dan Bantuan -->
+      <!-- Tombol Navigasi Suara & Info -->
       <div class="flex items-center gap-1.5">
-        <button id="btn-sound" title="Aktifkan/Matikan Suara" class="p-2 rounded-xl bg-slate-700/80 hover:bg-slate-600 text-slate-300 hover:text-white transition-all text-sm flex items-center justify-center border border-slate-600 active:scale-95">
-          <span id="sound-icon">🔊</span>
+        <button id="btn-sound-toggle" title="Aktifkan/Matikan Suara" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition active:scale-95">
+          <svg id="icon-sound-on" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
+          </svg>
+          <svg id="icon-sound-off" class="w-4 h-4 hidden text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z m12-6l-6 6m0-6l6 6"/>
+          </svg>
         </button>
-        <button id="btn-guide" title="Panduan Bermain" class="p-2 rounded-xl bg-slate-700/80 hover:bg-slate-600 text-slate-300 hover:text-white transition-all text-sm flex items-center justify-center border border-slate-600 active:scale-95">
-          ❓
+        <button id="btn-open-guide" title="Panduan Materi & Kontrol" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition active:scale-95">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
         </button>
       </div>
 
     </div>
   </header>
 
-  <div class="bg-slate-800/60 border-b border-slate-700/60 px-3 py-2 z-20">
-    <div class="max-w-7xl mx-auto flex items-center justify-start sm:justify-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5">
-      <button onclick="switchMode('guess-shape')" class="mode-tab-btn active px-3 sm:px-4 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 bg-indigo-600 text-white shadow-lg shadow-indigo-600/30" data-mode="guess-shape">
-        <span>🎲</span> <span>Tebak Nama</span>
+  <!-- Tab Menu Pilihan Mode -->
+  <nav class="bg-slate-900/60 border-b border-slate-800/80 px-3 py-2 z-30">
+    <div class="max-w-7xl mx-auto flex items-center justify-start sm:justify-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+      <button onclick="setGameMode('guess-name')" data-mode="guess-name" class="mode-nav-btn px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 bg-indigo-600 text-white shadow-lg shadow-indigo-600/30">
+        <span>🎲</span> <span>Tebak Bangun</span>
       </button>
-      <button onclick="switchMode('guess-property')" class="mode-tab-btn px-3 sm:px-4 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 bg-slate-700/60 hover:bg-slate-700 text-slate-300" data-mode="guess-property">
+      <button onclick="setGameMode('guess-properties')" data-mode="guess-properties" class="mode-nav-btn px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 bg-slate-800/80 hover:bg-slate-800 text-slate-300">
         <span>🔍</span> <span>Unsur & Ciri</span>
       </button>
-      <button onclick="switchMode('formula-quiz')" class="mode-tab-btn px-3 sm:px-4 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 bg-slate-700/60 hover:bg-slate-700 text-slate-300" data-mode="formula-quiz">
+      <button onclick="setGameMode('quiz-formula')" data-mode="quiz-formula" class="mode-nav-btn px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 bg-slate-800/80 hover:bg-slate-800 text-slate-300">
         <span>⚡</span> <span>Tantangan Rumus</span>
       </button>
-      <button onclick="switchMode('lab-3d')" class="mode-tab-btn px-3 sm:px-4 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 bg-slate-700/60 hover:bg-slate-700 text-slate-300" data-mode="lab-3d">
-        <span>🔬</span> <span>Lab 3D Bebas</span>
+      <button onclick="setGameMode('lab-explore')" data-mode="lab-explore" class="mode-nav-btn px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 bg-slate-800/80 hover:bg-slate-800 text-slate-300">
+        <span>🔬</span> <span>Lab 3D Eksplorasi</span>
       </button>
     </div>
-  </div>
+  </nav>
 
+  <!-- Konten Utama: 3D Kanvas & Panel Interaksi -->
   <main class="max-w-7xl mx-auto w-full flex-1 p-3 sm:p-6 flex flex-col justify-center">
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-stretch">
       
-      <!-- Kolom 3D Canvas Viewport (7 Kolom Desktop) -->
-      <div class="lg:col-span-7 flex flex-col bg-slate-800/80 backdrop-blur rounded-3xl border border-slate-700/80 shadow-2xl overflow-hidden relative min-h-[350px] sm:min-h-[440px] lg:min-h-[500px]">
+      <!-- Area Kanvas Tiga Dimensi (Kolom Kiri 7 / 12) -->
+      <div class="lg:col-span-7 flex flex-col bg-slate-900/90 rounded-3xl border border-slate-800 shadow-2xl overflow-hidden relative min-h-[320px] sm:min-h-[420px] lg:min-h-[500px]">
         
-        <!-- Overlay Header Canvas -->
+        <!-- Bar Kontrol Kanvas Atas -->
         <div class="absolute top-3 left-3 right-3 z-10 flex items-center justify-between pointer-events-none">
-          <div class="bg-slate-900/80 backdrop-blur border border-slate-700/80 px-3 py-1.5 rounded-2xl flex items-center gap-2 pointer-events-auto shadow-md">
-            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-            <span id="canvas-shape-label" class="text-xs sm:text-sm font-bold text-slate-200 tracking-wide">Mode Putar 3D</span>
+          <div class="bg-slate-900/90 backdrop-blur border border-slate-700/70 px-3 py-1 rounded-2xl flex items-center gap-2 pointer-events-auto shadow-md">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            <span id="canvas-status-badge" class="text-xs font-bold text-slate-200 tracking-wide">Mode Putar 3D</span>
           </div>
-          
-          <!-- Indikator Rotasi Interaktif -->
+
           <div class="flex items-center gap-1.5 pointer-events-auto">
-            <button id="btn-autorotate" onclick="toggleAutoRotate()" title="Putar Otomatis" class="p-2 bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-indigo-400 rounded-xl text-xs transition shadow active:scale-95">
-              🔄 Putar
+            <button id="btn-toggle-spin" onclick="toggleCanvasAutoSpin()" title="Nyalakan/Matikan Putaran Otomatis" class="px-2.5 py-1.5 bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-indigo-400 rounded-xl text-xs font-semibold transition shadow flex items-center gap-1 active:scale-95">
+              <span id="spin-icon">🔄</span> <span id="spin-text" class="hidden sm:inline">Putar</span>
             </button>
-            <button onclick="resetCameraView()" title="Posisikan Semula" class="p-2 bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-slate-300 rounded-xl text-xs transition shadow active:scale-95">
-              🎯 Reset
+            <button onclick="resetCameraOrientation()" title="Kembalikan Posisi Kamera" class="px-2.5 py-1.5 bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition shadow flex items-center gap-1 active:scale-95">
+              <span>🎯</span> <span class="hidden sm:inline">Reset</span>
             </button>
           </div>
         </div>
 
-        <!-- Wadah Tiga Dimensi Three.js -->
-        <div id="three-canvas-container" class="w-full h-full flex-1 relative flex items-center justify-center bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
-          <!-- Canvas dibuat otomatis via script Three.js -->
-          <div id="loading-spinner" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 text-indigo-400 z-0">
-            <div class="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-            <p class="mt-3 text-xs text-slate-400 font-medium">Memuat Model 3D...</p>
+        <!-- Wadah Rendering Three.js -->
+        <div id="canvas-viewport" class="w-full h-full flex-1 relative flex items-center justify-center bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 overflow-hidden">
+          <!-- Fallback Loader -->
+          <div id="canvas-loader" class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 bg-slate-950/80 z-20 transition-opacity duration-300">
+            <div class="w-9 h-9 border-3 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+            <span class="text-xs mt-2.5 font-medium">Memuat Objek 3D...</span>
           </div>
+          <!-- Kanvas konfeti partikel mandiri -->
+          <canvas id="confetti-canvas" class="absolute inset-0 pointer-events-none z-30 w-full h-full"></canvas>
         </div>
 
-        <!-- Hint Kontrol Gestur Bawah -->
-        <div class="bg-slate-900/70 border-t border-slate-700/60 px-4 py-2 flex items-center justify-between text-[11px] sm:text-xs text-slate-400">
+        <!-- Bar Bantuan Interaksi Bawah -->
+        <div class="bg-slate-950/80 border-t border-slate-800/80 px-4 py-2 flex items-center justify-between text-[11px] text-slate-400">
           <span class="flex items-center gap-1.5">
-            <span>🖱️</span> <span class="hidden sm:inline">Klik & Geser untuk memutar bangun</span><span class="sm:hidden">Geser untuk putar</span>
+            <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg>
+            <span>Geser objek untuk memeriksa seluruh sisi</span>
           </span>
           <span class="flex items-center gap-1.5">
-            <span>🔍</span> <span class="hidden sm:inline">Scroll mouse / cubit layar untuk zoom</span><span class="sm:hidden">Zoom tersedia</span>
+            <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"/></svg>
+            <span>Scroll / Pinch untuk zoom</span>
           </span>
         </div>
 
       </div>
 
-      <div class="lg:col-span-5 flex flex-col justify-between bg-slate-800/80 backdrop-blur rounded-3xl border border-slate-700/80 shadow-2xl p-4 sm:p-6 relative">
+      <!-- Area Panel Interaksi (Kolom Kanan 5 / 12) -->
+      <div class="lg:col-span-5 flex flex-col justify-between bg-slate-900/90 rounded-3xl border border-slate-800 shadow-2xl p-4 sm:p-6 relative">
         
-        <!-- Panel Mode 1, 2, 3: Tanya Jawab Kuis -->
-        <div id="quiz-interaction-panel" class="flex-1 flex flex-col justify-between">
+        <!-- 1. Panel Mode Kuis (Tebak Nama, Unsur, Rumus) -->
+        <div id="panel-quiz-mode" class="flex-1 flex flex-col justify-between space-y-4">
           
-          <!-- Pertanyaan & Kategori -->
           <div>
             <div class="flex items-center justify-between mb-2">
-              <span id="quiz-badge" class="px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                Level Kuis
+              <span id="quiz-category-tag" class="px-2.5 py-1 rounded-lg text-[11px] font-extrabold uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                Tebak Nama Bangun
               </span>
-              <span id="quiz-timer" class="text-xs text-slate-400 font-medium">Tantangan #<span id="question-index">1</span></span>
+              <span class="text-xs text-slate-400 font-medium">Soal #<span id="quiz-number-indicator">1</span></span>
             </div>
 
-            <h2 id="quiz-question-title" class="text-base sm:text-lg font-bold text-white mt-1 leading-snug">
-              Bangun ruang 3D apakah yang sedang ditampilkan di layar?
+            <h2 id="quiz-question-title" class="text-base sm:text-lg font-bold text-white leading-snug">
+              Bangun ruang 3D apakah yang sedang ditampilkan di sebelah kiri?
             </h2>
-            <p id="quiz-question-desc" class="text-xs sm:text-sm text-slate-300 mt-1.5 leading-relaxed">
-              Perhatikan sisi, bentuk permukaan, dan rusuk bangun di sebelah kiri dengan memutarnya!
+            <p id="quiz-question-subtitle" class="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">
+              Putar bangun tersebut untuk mengenali bentuk bidang dan sisinya!
             </p>
           </div>
 
-          <!-- Pilihan Jawaban (Grid 4 Tombol) -->
-          <div id="quiz-options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 my-4">
-            <!-- Diisi secara dinamis oleh JavaScript -->
+          <!-- Pilihan Jawaban (4 Tombol) -->
+          <div id="quiz-options-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 my-2">
+            <!-- Diisi secara dinamis melalui script -->
           </div>
 
-          <!-- Banner Umpan Balik Jawaban (Benar / Salah) -->
-          <div id="feedback-card" class="hidden p-3.5 sm:p-4 rounded-2xl border transition-all duration-300">
+          <!-- Kartu Umpan Balik Jawaban (Benar/Salah + Penjelasan Lengkap) -->
+          <div id="quiz-feedback-box" class="hidden p-4 rounded-2xl border transition-all duration-300">
             <div class="flex items-start gap-3">
-              <span id="feedback-icon" class="text-2xl">🎉</span>
+              <span id="feedback-symbol" class="text-2xl">✨</span>
               <div class="flex-1">
-                <h4 id="feedback-title" class="text-sm font-bold">Jawaban Benar!</h4>
-                <p id="feedback-explanation" class="text-xs text-slate-300 mt-1 leading-relaxed">
-                  Penjelasan singkat mengenai bangun ruang ini.
+                <h4 id="feedback-head" class="text-sm font-bold">Hebat, Jawaban Tepat!</h4>
+                <p id="feedback-detail" class="text-xs text-slate-300 mt-1 leading-relaxed">
+                  Penjelasan matematika terkait unsur dan rumus bangun ruang.
                 </p>
               </div>
             </div>
-            <button id="btn-next-question" onclick="nextQuestion()" class="mt-3 w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white font-bold text-xs sm:text-sm rounded-xl transition shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2">
-              <span>Pertanyaan Berikutnya</span> <span>➔</span>
+            <button id="btn-proceed-next" onclick="advanceNextQuizQuestion()" class="mt-3.5 w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white font-bold text-xs sm:text-sm rounded-xl transition shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-1.5">
+              <span>Lanjut Soal Berikutnya</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
             </button>
           </div>
 
         </div>
 
-        <div id="lab-interaction-panel" class="hidden flex-1 flex flex-col justify-between space-y-4">
+        <!-- 2. Panel Mode Laboratorium 3D Eksplorasi -->
+        <div id="panel-lab-mode" class="hidden flex-1 flex flex-col justify-between space-y-4">
           
           <div>
             <div class="flex items-center justify-between mb-3">
-              <span class="px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                🔬 Laboratorium 3D Bebas
+              <span class="px-2.5 py-1 rounded-lg text-[11px] font-extrabold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                🔬 Lab Eksplorasi Bebas
               </span>
               <span class="text-xs text-slate-400">Pilih & Bedah Bangun</span>
             </div>
 
-            <!-- Pemilih Bangun Ruang -->
-            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Pilih Bangun Ruang:</label>
-            <div class="grid grid-cols-3 sm:grid-cols-4 gap-1.5 mb-4" id="lab-shape-selector">
-              <!-- Tombol selector bangun diisi oleh JS -->
+            <!-- Pemilih Bangun Ruang Lab -->
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">Pilih Model Bangun Ruang:</label>
+            <div id="lab-shapes-grid" class="grid grid-cols-3 sm:grid-cols-4 gap-1.5 mb-3.5">
+              <!-- Diisi secara dinamis oleh JavaScript -->
             </div>
 
-            <!-- Kontrol Visualisasi Khusus Lab -->
-            <div class="bg-slate-900/60 p-3 rounded-2xl border border-slate-700/60 space-y-2.5">
-              <span class="text-xs font-bold text-indigo-300 block mb-1">Opsi Tampilan 3D:</span>
-              <div class="grid grid-cols-2 gap-2">
-                <button id="toggle-wireframe-btn" onclick="toggleWireframeMode()" class="px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 transition flex items-center justify-center gap-1.5">
+            <!-- Modifikasi Visual 3D -->
+            <div class="bg-slate-950/70 p-3 rounded-2xl border border-slate-800 space-y-2">
+              <span class="text-[11px] font-bold text-indigo-300 block">Modifikasi Penampilan 3D:</span>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <button id="btn-lab-wireframe" onclick="toggleLabWireframe()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-semibold transition flex items-center justify-center gap-1.5 active:scale-95">
                   <span>🕸️</span> <span>Rangka Saja</span>
                 </button>
-                <button id="toggle-transparent-btn" onclick="toggleTransparencyMode()" class="px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 transition flex items-center justify-center gap-1.5">
+                <button id="btn-lab-vertices" onclick="toggleLabVertices()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-semibold transition flex items-center justify-center gap-1.5 active:scale-95">
+                  <span>🟡</span> <span>Titik Sudut</span>
+                </button>
+                <button id="btn-lab-opacity" onclick="toggleLabTransparency()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-semibold transition flex items-center justify-center gap-1.5 active:scale-95">
                   <span>💎</span> <span>Transparan</span>
                 </button>
-                <button id="toggle-vertices-btn" onclick="toggleVerticesHighlight()" class="px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 transition flex items-center justify-center gap-1.5">
-                  <span>🔴</span> <span>Titik Sudut</span>
-                </button>
-                <button onclick="changeColorRandomly()" class="px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 transition flex items-center justify-center gap-1.5">
+                <button onclick="randomizeLabColor()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-semibold transition flex items-center justify-center gap-1.5 active:scale-95">
                   <span>🎨</span> <span>Ganti Warna</span>
                 </button>
               </div>
             </div>
           </div>
 
-          <!-- Rangkuman Unsur & Rumus Bangun Aktif -->
-          <div class="bg-slate-900/90 p-4 rounded-2xl border border-slate-700/70 max-h-56 overflow-y-auto space-y-3">
-            <h3 id="lab-detail-title" class="text-base font-bold text-indigo-300 flex items-center gap-2">
-              Kubus
+          <!-- Rangkuman Data Matematika Bangun Aktif -->
+          <div class="bg-slate-950/90 p-3.5 rounded-2xl border border-slate-800 max-h-56 overflow-y-auto space-y-2.5">
+            <h3 id="lab-shape-heading" class="text-sm font-extrabold text-indigo-300 flex items-center gap-1.5">
+              Kubus 3D
             </h3>
-            
-            <!-- Grid Unsur -->
-            <div class="grid grid-cols-3 gap-2 text-center">
-              <div class="bg-slate-800/80 p-2 rounded-xl border border-slate-700">
-                <span class="text-[10px] text-slate-400 block">Sisi</span>
-                <span id="lab-detail-sisi" class="text-sm sm:text-base font-black text-amber-400">6</span>
+
+            <!-- Statistik Sisi, Rusuk, Titik Sudut -->
+            <div class="grid grid-cols-3 gap-2 text-center text-xs">
+              <div class="bg-slate-900 p-2 rounded-xl border border-slate-800">
+                <span class="text-[10px] text-slate-400 block font-medium">Banyak Sisi</span>
+                <span id="lab-stat-sisi" class="text-base font-black text-amber-400">6</span>
               </div>
-              <div class="bg-slate-800/80 p-2 rounded-xl border border-slate-700">
-                <span class="text-[10px] text-slate-400 block">Rusuk</span>
-                <span id="lab-detail-rusuk" class="text-sm sm:text-base font-black text-emerald-400">12</span>
+              <div class="bg-slate-900 p-2 rounded-xl border border-slate-800">
+                <span class="text-[10px] text-slate-400 block font-medium">Banyak Rusuk</span>
+                <span id="lab-stat-rusuk" class="text-base font-black text-emerald-400">12</span>
               </div>
-              <div class="bg-slate-800/80 p-2 rounded-xl border border-slate-700">
-                <span class="text-[10px] text-slate-400 block">Titik Sudut</span>
-                <span id="lab-detail-sudut" class="text-sm sm:text-base font-black text-rose-400">8</span>
+              <div class="bg-slate-900 p-2 rounded-xl border border-slate-800">
+                <span class="text-[10px] text-slate-400 block font-medium">Titik Sudut</span>
+                <span id="lab-stat-sudut" class="text-base font-black text-rose-400">8</span>
               </div>
             </div>
 
-            <!-- Rumus Matematika -->
+            <!-- Rumus Matematika Detail -->
             <div class="space-y-1.5 text-xs">
-              <div class="bg-slate-800/60 p-2 rounded-xl">
-                <span class="text-indigo-300 font-semibold block">Volume:</span>
-                <span id="lab-detail-volume" class="font-mono text-slate-200">V = s × s × s</span>
+              <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800/80">
+                <span class="text-indigo-300 font-bold block text-[11px]">Rumus Volume:</span>
+                <span id="lab-formula-volume" class="font-mono text-slate-200">V = s × s × s = s³</span>
               </div>
-              <div class="bg-slate-800/60 p-2 rounded-xl">
-                <span class="text-indigo-300 font-semibold block">Luas Permukaan:</span>
-                <span id="lab-detail-luas" class="font-mono text-slate-200">L = 6 × s²</span>
+              <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800/80">
+                <span class="text-indigo-300 font-bold block text-[11px]">Luas Permukaan:</span>
+                <span id="lab-formula-surface" class="font-mono text-slate-200">L = 6 × s²</span>
               </div>
-              <div class="bg-slate-800/60 p-2 rounded-xl">
-                <span class="text-indigo-300 font-semibold block">Benda Nyata:</span>
-                <span id="lab-detail-contoh" class="text-slate-300">Dadu, kotak rubik, kado</span>
+              <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800/80">
+                <span class="text-indigo-300 font-bold block text-[11px]">Benda di Sekitar Kita:</span>
+                <span id="lab-real-examples" class="text-slate-300">Dadu, kotak rubik, kado persegi</span>
               </div>
             </div>
           </div>
@@ -324,1085 +334,1119 @@
     </div>
   </main>
 
-  <div id="modal-guide" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm hidden items-center justify-center p-4">
-    <div class="bg-slate-800 border border-slate-700 rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl relative animate-float">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-bold text-white flex items-center gap-2">
-          <span>📖</span> Panduan Bermain
+  <!-- MODAL 1: Panduan Bermain & Belajar -->
+  <div id="modal-instructions" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl relative text-slate-200">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <h3 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+          <span>📖</span> Panduan Bermain & Materi
         </h3>
-        <button onclick="closeModal('modal-guide')" class="w-8 h-8 rounded-full bg-slate-700 hover:bg-slate-600 flex items-center justify-center text-slate-300 text-sm">
+        <button onclick="dismissModal('modal-instructions')" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 text-sm">
           ✕
         </button>
       </div>
-      <div class="space-y-3 text-xs sm:text-sm text-slate-300 leading-relaxed max-h-[70vh] overflow-y-auto pr-1">
-        <div class="p-3 bg-slate-900/60 rounded-2xl border border-slate-700/60">
-          <strong class="text-indigo-300 block mb-1">1. Mode Tebak Nama</strong>
-          Putar bangun 3D dengan mouse/sentuhan, lalu pilih nama bangun ruang yang tepat.
+
+      <div class="space-y-3.5 my-4 text-xs sm:text-sm max-h-[65vh] overflow-y-auto pr-1 leading-relaxed">
+        <div class="p-3 bg-slate-950/80 rounded-2xl border border-slate-800">
+          <strong class="text-indigo-300 block mb-1 text-xs sm:text-sm">1. Mode Tebak Nama</strong>
+          Putar objek 3D di sebelah kiri dengan menggeser layar atau mouse, lalu pilih nama bangun ruang yang sesuai.
         </div>
-        <div class="p-3 bg-slate-900/60 rounded-2xl border border-slate-700/60">
-          <strong class="text-emerald-300 block mb-1">2. Mode Unsur & Ciri</strong>
-          Tebak jumlah sisi, rusuk, atau titik sudut dari bangun ruang yang ditampilkan.
+        <div class="p-3 bg-slate-950/80 rounded-2xl border border-slate-800">
+          <strong class="text-emerald-300 block mb-1 text-xs sm:text-sm">2. Mode Unsur & Ciri</strong>
+          Latih ketelitianmu dalam menghitung banyaknya sisi, rusuk lengkung/lurus, serta titik sudut tiap bangun.
         </div>
-        <div class="p-3 bg-slate-900/60 rounded-2xl border border-slate-700/60">
-          <strong class="text-amber-300 block mb-1">3. Mode Tantangan Rumus</strong>
-          Jawab kuis perhitungan volume dan luas permukaan dengan cepat dan tepat.
+        <div class="p-3 bg-slate-950/80 rounded-2xl border border-slate-800">
+          <strong class="text-amber-300 block mb-1 text-xs sm:text-sm">3. Tantangan Rumus</strong>
+          Jawab kuis perhitungan volume dan luas permukaan dengan cepat untuk melipatgandakan skormu melalui combo streak!
         </div>
-        <div class="p-3 bg-slate-900/60 rounded-2xl border border-slate-700/60">
-          <strong class="text-purple-300 block mb-1">4. Lab 3D Eksplorasi</strong>
-          Eksplorasi bebas semua bangun ruang, nyalakan rangka (wireframe), sorot titik sudut, dan pelajari rumusnya.
+        <div class="p-3 bg-slate-950/80 rounded-2xl border border-slate-800">
+          <strong class="text-purple-300 block mb-1 text-xs sm:text-sm">4. Lab 3D Bebas</strong>
+          Bebas mengubah warna, menampilkan rangka transparan (*wireframe*), dan menyorot titik sudut kuning untuk belajar santai.
         </div>
-        <div class="p-3 bg-indigo-950/40 rounded-2xl border border-indigo-500/30 text-indigo-200">
-          💡 <strong>Tips Juara:</strong> Kumpulkan streak benar beruntun untuk melipatgandakan poin skormu!
+        <div class="p-3 bg-indigo-950/30 rounded-2xl border border-indigo-500/30 text-indigo-200 text-xs">
+          💡 <strong>Kontrol 3D:</strong> Geser jari/mouse untuk memutar. Gunakan scroll mouse atau cubit layar (*pinch*) untuk memperbesar dan memperkecil.
         </div>
       </div>
-      <button onclick="closeModal('modal-guide')" class="mt-5 w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm rounded-xl transition shadow-lg shadow-indigo-600/30">
-        Mengerti, Ayo Main!
+
+      <button onclick="dismissModal('modal-instructions')" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 font-bold text-xs sm:text-sm rounded-xl transition text-white shadow-lg shadow-indigo-600/30">
+        Siap, Ayo Mulai!
       </button>
     </div>
   </div>
 
-  <div id="modal-result" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
-    <div class="bg-slate-800 border border-slate-700 rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl relative">
-      <div id="result-badge-icon" class="text-5xl mb-3">🏆</div>
-      <h3 id="result-title" class="text-xl font-extrabold text-white">Luar Biasa!</h3>
-      <p id="result-subtitle" class="text-xs text-slate-400 mt-1 mb-4">Kamu telah menyelesaikan sesi belajar!</p>
-      
-      <!-- Bintang Evaluasi -->
-      <div id="result-stars" class="flex justify-center gap-2 text-2xl text-amber-400 mb-4">
-        <span>★</span><span>★</span><span>★</span>
-      </div>
+  <!-- MODAL 2: Hasil Permainan / Game Over -->
+  <div id="modal-gameover" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl relative">
+      <div id="gameover-icon" class="text-5xl mb-2.5">🏆</div>
+      <h3 id="gameover-title" class="text-xl font-black text-white">Luar Biasa!</h3>
+      <p id="gameover-desc" class="text-xs text-slate-400 mt-1 mb-4">Kamu telah menyelesaikan sesi tantangan geometri!</p>
 
-      <!-- Kotak Statistik Hasil -->
-      <div class="bg-slate-900/80 p-3.5 rounded-2xl border border-slate-700/80 mb-5 space-y-2 text-xs">
-        <div class="flex justify-between">
+      <div class="bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800 text-xs space-y-2 mb-5">
+        <div class="flex justify-between items-center">
           <span class="text-slate-400">Skor Akhir:</span>
-          <span id="final-score" class="font-bold text-indigo-300 text-sm">1200</span>
+          <span id="gameover-score" class="text-sm font-extrabold text-indigo-300">0</span>
         </div>
-        <div class="flex justify-between">
+        <div class="flex justify-between items-center">
           <span class="text-slate-400">Streak Tertinggi:</span>
-          <span id="final-streak" class="font-bold text-amber-300">5x</span>
+          <span id="gameover-maxstreak" class="text-sm font-bold text-amber-400">0x</span>
         </div>
-        <div class="flex justify-between">
-          <span class="text-slate-400">Akurasi:</span>
-          <span id="final-accuracy" class="font-bold text-emerald-300">100%</span>
+        <div class="flex justify-between items-center">
+          <span class="text-slate-400">Akurasi Jawaban:</span>
+          <span id="gameover-accuracy" class="text-sm font-bold text-emerald-400">100%</span>
         </div>
       </div>
 
       <div class="flex gap-2">
-        <button onclick="restartGameSession()" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs sm:text-sm rounded-xl transition shadow-lg shadow-indigo-600/30">
+        <button onclick="restartFullGameSession()" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs sm:text-sm rounded-xl transition shadow-lg shadow-indigo-600/30 active:scale-95">
           Main Lagi 🔄
         </button>
-        <button onclick="switchMode('lab-3d'); closeModal('modal-result');" class="flex-1 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold text-xs sm:text-sm rounded-xl transition">
+        <button onclick="setGameMode('lab-explore'); dismissModal('modal-gameover');" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs sm:text-sm rounded-xl transition active:scale-95">
           Buka Lab 🔬
         </button>
       </div>
     </div>
   </div>
 
+  <!-- SCRIPT UTAMA PERMAINAN -->
   <script>
-    /* Data lengkap geometri bangun ruang */
-    const SHAPES_DATA = {
+    /**
+     * DATABASE LENGKAP BANGUN RUANG
+     * Sesuai Standar Kurikulum Matematika SD & SMP
+     */
+    const GEOMETRY_DATABASE = {
       kubus: {
         id: 'kubus',
         name: 'Kubus',
-        color: 0x3b82f6,
+        color: 0x4f46e5, // Indigo
         sisi: 6,
         rusuk: 12,
         titikSudut: 8,
-        sisiDesc: '6 sisi persegi kongruen sama besar',
-        rusukDesc: '12 rusuk sama panjang',
-        titikSudutDesc: '8 titik sudut siku-siku',
-        volumeFormula: 'V = s × s × s = s³',
-        luasFormula: 'L = 6 × s²',
-        contoh: 'Dadu, Rubik, Kotak kado persegi, Es batu',
-        keterangan: 'Kubus adalah bangun ruang sisi datar yang dibatasi oleh enam bidang sisi berbentuk bujur sangkar (persegi) yang sama besar.'
+        sisiInfo: '6 sisi persegi sama besar & kongruen',
+        rusukInfo: '12 rusuk sama panjang',
+        sudutInfo: '8 titik sudut bernilai 90°',
+        formulaVol: 'V = s × s × s = s³',
+        formulaLuas: 'L = 6 × s²',
+        examples: 'Dadu, Rubik, kotak kado bujur sangkar, es batu kubus',
+        explanation: 'Kubus adalah bangun ruang sisi datar yang memiliki 6 bidang sisi berbentuk persegi kongruen dan 12 rusuk sama panjang.'
       },
       balok: {
         id: 'balok',
         name: 'Balok',
-        color: 0x10b981,
+        color: 0x059669, // Emerald
         sisi: 6,
         rusuk: 12,
         titikSudut: 8,
-        sisiDesc: '6 sisi: 3 pasang sisi persegi panjang yang berhadapan kongruen',
-        rusukDesc: '12 rusuk (4 panjang, 4 lebar, 4 tinggi)',
-        titikSudutDesc: '8 titik sudut siku-siku',
-        volumeFormula: 'V = p × l × t',
-        luasFormula: 'L = 2 × (p·l + p·t + l·t)',
-        contoh: 'Batu bata, kotak sepatu, lemari, buku tebal',
-        keterangan: 'Balok adalah bangun ruang tiga dimensi yang dibentuk oleh tiga pasang persegi panjang dengan ukuran yang berbeda pada panjang, lebar, atau tingginya.'
+        sisiInfo: '6 sisi: 3 pasang persegi panjang yang saling berhadapan kongruen',
+        rusukInfo: '12 rusuk (4 panjang, 4 lebar, 4 tinggi)',
+        sudutInfo: '8 titik sudut siku-siku',
+        formulaVol: 'V = p × l × t',
+        formulaLuas: 'L = 2 × (p·l + p·t + l·t)',
+        examples: 'Batu bata, kotak sepatu, lemari pakaian, buku tebal',
+        explanation: 'Balok terbentuk oleh 3 pasang bidang datar persegi panjang yang kongruen dengan ukuran rusuk panjang, lebar, dan tinggi.'
       },
       tabung: {
         id: 'tabung',
-        name: 'Tabung',
-        color: 0xf59e0b,
+        name: 'Tabung (Silinder)',
+        color: 0xd97706, // Amber
         sisi: 3,
         rusuk: 2,
         titikSudut: 0,
-        sisiDesc: '3 sisi: alas & tutup lingkaran kongruen, serta selimut lengkung',
-        rusukDesc: '2 rusuk lengkung berbentuk lingkaran',
-        titikSudutDesc: '0 (tidak memiliki titik sudut)',
-        volumeFormula: 'V = π × r² × t',
-        luasFormula: 'L = 2 × π × r × (r + t)',
-        contoh: 'Kaleng susu, drum minyak, pipa, gelas, baterai',
-        keterangan: 'Tabung atau silinder adalah bangun ruang sisi lengkung yang dibatasi oleh dua lingkaran sejajar dan identik sebagai alas dan tutup serta sebuah selimut lengkung.'
+        sisiInfo: '3 sisi: 2 lingkaran identik (alas & tutup) + 1 selimut lengkung',
+        rusukInfo: '2 rusuk berbentuk lingkaran lengkung',
+        sudutInfo: '0 (tidak memiliki titik sudut lancip)',
+        formulaVol: 'V = π × r² × t',
+        formulaLuas: 'L = 2 × π × r × (r + t)',
+        examples: 'Kaleng biskuit, drum minyak, pipa paralon, baterai',
+        explanation: 'Tabung adalah bangun ruang sisi lengkung yang dibatasi oleh dua lingkaran sejajar kongruen dan sebuah selimut lengkung.'
       },
       kerucut: {
         id: 'kerucut',
         name: 'Kerucut',
-        color: 0x8b5cf6,
+        color: 0x7c3aed, // Purple
         sisi: 2,
         rusuk: 1,
         titikSudut: 1,
-        sisiDesc: '2 sisi: 1 alas lingkaran dan 1 selimut kerucut melengkung',
-        rusukDesc: '1 rusuk lengkung pada lingkaran alas',
-        titikSudutDesc: '1 titik puncak kerucut',
-        volumeFormula: 'V = ⅓ × π × r² × t',
-        luasFormula: 'L = π × r × (r + s)',
-        contoh: 'Topi ulang tahun, cone es krim, tumpeng, corong minyak',
-        keterangan: 'Kerucut adalah bangun ruang dengan alas berbentuk lingkaran dan selimut yang melengkung menyempit menuju satu titik puncak.'
+        sisiInfo: '2 sisi: 1 bidang alas lingkaran dan 1 selimut kerucut',
+        rusukInfo: '1 rusuk lengkung pada bidang alas',
+        sudutInfo: '1 titik puncak kerucut',
+        formulaVol: 'V = ⅓ × π × r² × t',
+        formulaLuas: 'L = π × r × (r + s)',
+        examples: 'Topi ulang tahun, cone es krim, tumpeng nasi, corong',
+        explanation: 'Kerucut adalah bangun ruang dengan alas lingkaran serta selimut melengkung yang mengerucut ke sebuah titik puncak.'
       },
       bola: {
         id: 'bola',
         name: 'Bola',
-        color: 0xec4899,
+        color: 0xdb2777, // Pink
         sisi: 1,
         rusuk: 0,
         titikSudut: 0,
-        sisiDesc: '1 sisi permukaan lengkung sempurna',
-        rusukDesc: '0 (tidak memiliki rusuk)',
-        titikSudutDesc: '0 (tidak memiliki titik sudut)',
-        volumeFormula: 'V = 4/3 × π × r³',
-        luasFormula: 'L = 4 × π × r²',
-        contoh: 'Bola sepak, globe bumi, kelereng, semangka',
-        keterangan: 'Bola adalah bangun ruang sisi lengkung yang dibentuk oleh tak hingga lingkaran yang memiliki jari-jari sama dan berpusat pada satu titik.'
+        sisiInfo: '1 sisi lengkung yang menyelimuti seluruh permukaannya',
+        rusukInfo: '0 (tidak memiliki rusuk)',
+        sudutInfo: '0 (tidak memiliki sudut sama sekali)',
+        formulaVol: 'V = 4/3 × π × r³',
+        formulaLuas: 'L = 4 × π × r²',
+        examples: 'Bola sepak, globe bumi, semangka, kelereng',
+        explanation: 'Bola dibentuk oleh tak hingga lingkaran yang memiliki jari-jari seragam dan berpusat pada satu titik tengah.'
       },
       limas_segiempat: {
         id: 'limas_segiempat',
         name: 'Limas Segiempat',
-        color: 0x06b6d4,
+        color: 0x0891b2, // Cyan
         sisi: 5,
         rusuk: 8,
         titikSudut: 5,
-        sisiDesc: '5 sisi: 1 alas segiempat dan 4 sisi tegak segitiga',
-        rusukDesc: '8 rusuk (4 rusuk alas + 4 rusuk tegak)',
-        titikSudutDesc: '5 titik sudut (4 di alas + 1 titik puncak)',
-        volumeFormula: 'V = ⅓ × Luas Alas × t',
-        luasFormula: 'L = Luas Alas + (Jumlah Luas 4 Sisi Tegak)',
-        contoh: 'Piramida Mesir, tenda limas, atap rumah adat',
-        keterangan: 'Limas segiempat memiliki bidang alas berbentuk segiempat dan bidang-bidang tegak segitiga yang bertemu pada satu titik puncak bersama.'
+        sisiInfo: '5 sisi: 1 alas segiempat dan 4 sisi tegak segitiga',
+        rusukInfo: '8 rusuk (4 rusuk alas + 4 rusuk tegak)',
+        sudutInfo: '5 titik sudut (4 di alas + 1 titik puncak)',
+        formulaVol: 'V = ⅓ × Luas Alas × t',
+        formulaLuas: 'L = Luas Alas + (Jumlah Luas 4 Segitiga)',
+        examples: 'Piramida Giza Mesir, tenda limas, atap rumah joglo',
+        explanation: 'Limas segiempat memiliki alas berbentuk segiempat dan 4 bidang tegak segitiga yang bertemu di satu puncak.'
       },
       prisma_segitiga: {
         id: 'prisma_segitiga',
         name: 'Prisma Segitiga',
-        color: 0xf97316,
+        color: 0xe11d48, // Rose
         sisi: 5,
         rusuk: 9,
         titikSudut: 6,
-        sisiDesc: '5 sisi: 2 segitiga kongruen (alas & tutup) + 3 sisi tegak segiempat',
-        rusukDesc: '9 rusuk (3 rusuk alas + 3 tutup + 3 rusuk tegak)',
-        titikSudutDesc: '6 titik sudut',
-        volumeFormula: 'V = Luas Alas Segitiga × t',
-        luasFormula: 'L = (2 × Luas Alas) + (Keliling Alas × t)',
-        contoh: 'Tenda pramuka, atap rumah, potongan cokelat Toblerone',
-        keterangan: 'Prisma segitiga adalah bangun ruang tiga dimensi yang dibatasi oleh dua buah segitiga identik sejajar dan tiga bidang tegak persegi panjang.'
+        sisiInfo: '5 sisi: 2 segitiga kongruen (alas & tutup) + 3 persegi panjang tegak',
+        rusukInfo: '9 rusuk (3 alas + 3 tutup + 3 rusuk tegak)',
+        sudutInfo: '6 titik sudut',
+        formulaVol: 'V = Luas Alas Segitiga × t',
+        formulaLuas: 'L = (2 × Luas Alas) + (Keliling Alas × t)',
+        examples: 'Tenda perkemahan pramuka, cokelat toblerone, atap prisma',
+        explanation: 'Prisma segitiga dibatasi oleh dua bidang segitiga sejajar kongruen dan tiga bidang tegak persegi panjang.'
       }
     };
 
-    const SHAPE_KEYS = Object.keys(SHAPES_DATA);
+    const SHAPE_KEYS = Object.keys(GEOMETRY_DATABASE);
 
-    let audioCtx = null;
-    let soundEnabled = true;
+    /**
+     * SINTESIS SUARA MANDIRI (WEB AUDIO API)
+     * Tidak memerlukan unduhan audio eksternal sehingga anti error CORS/404
+     */
+    let audioContext = null;
+    let isSoundMuted = false;
 
-    function initAudio() {
-      if (!audioCtx) {
-        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-        if (AudioContextClass) {
-          audioCtx = new AudioContextClass();
+    function getAudioContext() {
+      if (!audioContext) {
+        const AudioClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioClass) {
+          audioContext = new AudioClass();
         }
       }
-      if (audioCtx && audioCtx.state === 'suspended') {
-        audioCtx.resume();
+      if (audioContext && audioContext.state === 'suspended') {
+        audioContext.resume();
       }
+      return audioContext;
     }
 
-    function playTone(freq, type, duration, delay = 0) {
-      if (!soundEnabled) return;
-      initAudio();
-      if (!audioCtx) return;
+    function playSynthTone(freq, waveType, duration, delaySeconds = 0, volume = 0.2) {
+      if (isSoundMuted) return;
+      const ctx = getAudioContext();
+      if (!ctx) return;
 
       setTimeout(() => {
         try {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.type = type;
-          osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = waveType;
+          osc.frequency.setValueAtTime(freq, ctx.currentTime);
 
-          gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+          gain.gain.setValueAtTime(volume, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
 
           osc.connect(gain);
-          gain.connect(audioCtx.destination);
+          gain.connect(ctx.destination);
 
           osc.start();
-          osc.stop(audioCtx.currentTime + duration);
+          osc.stop(ctx.currentTime + duration);
         } catch (e) {
-          console.error('Audio play error:', e);
+          console.warn('Synth error:', e);
         }
-      }, delay * 1000);
+      }, delaySeconds * 1000);
     }
 
-    function playSoundCorrect() {
-      playTone(440, 'triangle', 0.15, 0);       // A4
-      playTone(554.37, 'triangle', 0.15, 0.1);  // C#5
-      playTone(659.25, 'triangle', 0.15, 0.2);  // E5
-      playTone(880, 'triangle', 0.35, 0.3);     // A5
+    function playSfx(type) {
+      if (isSoundMuted) return;
+      if (type === 'correct') {
+        playSynthTone(440, 'triangle', 0.12, 0, 0.25);      // A4
+        playSynthTone(554.37, 'triangle', 0.12, 0.08, 0.25); // C#5
+        playSynthTone(659.25, 'triangle', 0.14, 0.16, 0.25); // E5
+        playSynthTone(880, 'triangle', 0.3, 0.24, 0.28);     // A5
+      } else if (type === 'wrong') {
+        playSynthTone(280, 'sawtooth', 0.18, 0, 0.25);
+        playSynthTone(210, 'sawtooth', 0.28, 0.15, 0.25);
+      } else if (type === 'click') {
+        playSynthTone(520, 'sine', 0.06, 0, 0.15);
+      } else if (type === 'victory') {
+        [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+          playSynthTone(freq, 'triangle', 0.25, idx * 0.1, 0.25);
+        });
+      }
     }
 
-    function playSoundWrong() {
-      playTone(280, 'sawtooth', 0.2, 0);
-      playTone(220, 'sawtooth', 0.35, 0.15);
-    }
-
-    function playSoundClick() {
-      playTone(600, 'sine', 0.05, 0);
-    }
-
-    function playSoundWin() {
-      const notes = [523.25, 659.25, 783.99, 1046.50];
-      notes.forEach((freq, idx) => {
-        playTone(freq, 'sine', 0.25, idx * 0.12);
-      });
-    }
-
-    document.getElementById('btn-sound').addEventListener('click', () => {
-      soundEnabled = !soundEnabled;
-      document.getElementById('sound-icon').textContent = soundEnabled ? '🔊' : '🔇';
-      if (soundEnabled) {
-        initAudio();
-        playSoundClick();
+    // Toggle Suara
+    document.getElementById('btn-sound-toggle').addEventListener('click', () => {
+      isSoundMuted = !isSoundMuted;
+      document.getElementById('icon-sound-on').classList.toggle('hidden', isSoundMuted);
+      document.getElementById('icon-sound-off').classList.toggle('hidden', !isSoundMuted);
+      if (!isSoundMuted) {
+        getAudioContext();
+        playSfx('click');
       }
     });
 
+    /**
+     * SISTEM PARTIKEL KONFETI MANDIRI (Murni Canvas 2D)
+     * Tidak butuh library eksternal
+     */
+    const confettiCanvas = document.getElementById('confetti-canvas');
+    const confettiCtx = confettiCanvas.getContext('2d');
+    let confettiParticles = [];
+    let confettiAnimId = null;
+
+    function resizeConfettiCanvas() {
+      if (!confettiCanvas) return;
+      confettiCanvas.width = confettiCanvas.clientWidth;
+      confettiCanvas.height = confettiCanvas.clientHeight;
+    }
+    window.addEventListener('resize', resizeConfettiCanvas);
+
+    function triggerConfettiBurst() {
+      resizeConfettiCanvas();
+      const colors = ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#3b82f6', '#8b5cf6'];
+      const total = 45;
+
+      for (let i = 0; i < total; i++) {
+        confettiParticles.push({
+          x: confettiCanvas.width * (0.3 + Math.random() * 0.4),
+          y: confettiCanvas.height * 0.5,
+          vx: (Math.random() - 0.5) * 12,
+          vy: -Math.random() * 10 - 4,
+          size: Math.random() * 6 + 4,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rotation: Math.random() * 360,
+          rotationSpeed: (Math.random() - 0.5) * 10,
+          opacity: 1,
+          gravity: 0.35
+        });
+      }
+
+      if (!confettiAnimId) {
+        runConfettiLoop();
+      }
+    }
+
+    function runConfettiLoop() {
+      confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+
+      for (let i = confettiParticles.length - 1; i >= 0; i--) {
+        const p = confettiParticles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += p.gravity;
+        p.rotation += p.rotationSpeed;
+        p.opacity -= 0.015;
+
+        if (p.opacity <= 0 || p.y > confettiCanvas.height) {
+          confettiParticles.splice(i, 1);
+          continue;
+        }
+
+        confettiCtx.save();
+        confettiCtx.translate(p.x, p.y);
+        confettiCtx.rotate((p.rotation * Math.PI) / 180);
+        confettiCtx.globalAlpha = Math.max(0, p.opacity);
+        confettiCtx.fillStyle = p.color;
+        confettiCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+        confettiCtx.restore();
+      }
+
+      if (confettiParticles.length > 0) {
+        confettiAnimId = requestAnimationFrame(runConfettiLoop);
+      } else {
+        confettiAnimId = null;
+        confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      }
+    }
+
+    /**
+     * THREE.JS 3D ENGINE
+     * Berjalan sepenuhnya dengan proteksi dimensi viewport dan resize observer
+     */
     let scene, camera, renderer;
-    let currentMeshGroup = null;
-    let autoRotate = true;
-    let isWireframeMode = false;
-    let isTransparentMode = false;
-    let isVerticesHighlight = false;
-    let activeLabShapeId = 'kubus';
+    let mainObjectGroup = null;
+    let isAutoRotating = true;
+    let labWireframeActive = false;
+    let labVerticesActive = false;
+    let labTransparentActive = false;
+    let currentLabShapeKey = 'kubus';
 
-    const container = document.getElementById('three-canvas-container');
+    const canvasViewport = document.getElementById('canvas-viewport');
 
-    function initThree() {
-      // Scene
+    function initThreeEngine() {
+      if (typeof THREE === 'undefined') {
+        const loader = document.getElementById('canvas-loader');
+        if (loader) {
+          loader.innerHTML = '<p class="text-xs text-rose-400 font-bold p-4 text-center">Gagal memuat pustaka Three.js. Harap periksa koneksi internet Anda.</p>';
+        }
+        return;
+      }
+
+      // 1. Scene
       scene = new THREE.Scene();
 
-      // Kamera
-      const aspect = container.clientWidth / container.clientHeight;
-      camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 1000);
+      // 2. Kamera Perspektif
+      const width = Math.max(canvasViewport.clientWidth, 280);
+      const height = Math.max(canvasViewport.clientHeight, 280);
+      camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
       camera.position.set(0, 2.2, 7.5);
       camera.lookAt(0, 0, 0);
 
-      // Renderer
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-      renderer.setSize(container.clientWidth, container.clientHeight);
+      // 3. Renderer
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+      renderer.setSize(width, height);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.shadowMap.enabled = true;
-      container.appendChild(renderer.domElement);
+      canvasViewport.appendChild(renderer.domElement);
 
-      // Pencahayaan
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+      // 4. Pencahayaan
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
       scene.add(ambientLight);
 
-      const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.85);
-      dirLight1.position.set(5, 10, 7);
-      scene.add(dirLight1);
+      const mainLight = new THREE.DirectionalLight(0xffffff, 0.9);
+      mainLight.position.set(6, 12, 8);
+      scene.add(mainLight);
 
-      const dirLight2 = new THREE.DirectionalLight(0x6366f1, 0.4);
-      dirLight2.position.set(-5, -5, -5);
-      scene.add(dirLight2);
+      const fillLight = new THREE.DirectionalLight(0x818cf8, 0.45);
+      fillLight.position.set(-6, -4, -6);
+      scene.add(fillLight);
 
-      // Group untuk menampung objek yang sedang aktif
-      currentMeshGroup = new THREE.Group();
-      scene.add(currentMeshGroup);
+      // 5. Grup Induk Objek
+      mainObjectGroup = new THREE.Group();
+      scene.add(mainObjectGroup);
 
-      // Sembunyikan spinner loading
-      const spinner = document.getElementById('loading-spinner');
-      if (spinner) spinner.style.display = 'none';
+      // Pasang kontrol putar sentuh & pointer terintegrasi
+      setupPointerControls(renderer.domElement);
 
-      // Pasang handler drag putar & zoom
-      setupCanvasControls();
+      // Gunakan ResizeObserver untuk mengatasi layout reflow pada perangkat mobile
+      if (window.ResizeObserver) {
+        const resizeObserver = new ResizeObserver(() => handleCanvasResize());
+        resizeObserver.observe(canvasViewport);
+      } else {
+        window.addEventListener('resize', handleCanvasResize);
+      }
 
-      // Responsif resize
-      window.addEventListener('resize', onWindowResize);
+      // Sembunyikan loader
+      const loader = document.getElementById('canvas-loader');
+      if (loader) loader.style.display = 'none';
 
-      // Mulai loop animasi
-      animate();
+      // Mulai loop animasi utama
+      renderLoop();
     }
 
-    function onWindowResize() {
-      if (!container || !renderer || !camera) return;
-      const width = container.clientWidth;
-      const height = container.clientHeight;
-      camera.aspect = width / height;
+    function handleCanvasResize() {
+      if (!canvasViewport || !renderer || !camera) return;
+      const w = canvasViewport.clientWidth;
+      const h = canvasViewport.clientHeight;
+      if (w === 0 || h === 0) return;
+
+      camera.aspect = w / h;
       camera.updateProjectionMatrix();
-      renderer.setSize(width, height);
+      renderer.setSize(w, h);
+      resizeConfettiCanvas();
     }
 
-    function createShapeGeometry(shapeId) {
-      let geo;
-      let vertexPositions = [];
+    /**
+     * PEMBUATAN GEOMETRI & TITIK SUDUT 3D
+     */
+    function buildShapeGeometry(shapeId) {
+      let geometry = null;
+      let vertexCoords = [];
 
       switch (shapeId) {
-        case 'kubus':
-          geo = new THREE.BoxGeometry(2.3, 2.3, 2.3);
-          const s = 1.15;
-          vertexPositions = [
-            [-s,-s,-s], [s,-s,-s], [s,s,-s], [-s,s,-s],
-            [-s,-s,s], [s,-s,s], [s,s,s], [-s,s,s]
+        case 'kubus': {
+          geometry = new THREE.BoxGeometry(2.3, 2.3, 2.3);
+          const c = 1.15;
+          vertexCoords = [
+            [-c,-c,-c], [c,-c,-c], [c,c,-c], [-c,c,-c],
+            [-c,-c,c], [c,-c,c], [c,c,c], [-c,c,c]
           ];
           break;
-
-        case 'balok':
-          geo = new THREE.BoxGeometry(3.3, 1.8, 2.0);
-          const px = 1.65, py = 0.9, pz = 1.0;
-          vertexPositions = [
-            [-px,-py,-pz], [px,-py,-pz], [px,py,-pz], [-px,py,-pz],
-            [-px,-py,pz], [px,-py,pz], [px,py,pz], [-px,py,pz]
+        }
+        case 'balok': {
+          geometry = new THREE.BoxGeometry(3.3, 1.8, 2.0);
+          const x = 1.65, y = 0.9, z = 1.0;
+          vertexCoords = [
+            [-x,-y,-z], [x,-y,-z], [x,y,-z], [-x,y,-z],
+            [-x,-y,z], [x,-y,z], [x,y,z], [-x,y,z]
           ];
           break;
-
-        case 'tabung':
-          geo = new THREE.CylinderGeometry(1.3, 1.3, 3.0, 32);
+        }
+        case 'tabung': {
+          geometry = new THREE.CylinderGeometry(1.3, 1.3, 3.0, 32);
           break;
-
-        case 'kerucut':
-          geo = new THREE.ConeGeometry(1.5, 3.2, 32);
-          vertexPositions = [[0, 1.6, 0]]; // Titik puncak
+        }
+        case 'kerucut': {
+          geometry = new THREE.ConeGeometry(1.5, 3.2, 32);
+          vertexCoords = [[0, 1.6, 0]]; // Puncak
           break;
-
-        case 'bola':
-          geo = new THREE.SphereGeometry(1.7, 36, 36);
+        }
+        case 'bola': {
+          geometry = new THREE.SphereGeometry(1.7, 36, 36);
           break;
-
-        case 'limas_segiempat':
-          // Piramida dengan 4 sisi di rotasi
-          geo = new THREE.CylinderGeometry(0, 1.9, 2.8, 4);
-          geo.rotateY(Math.PI / 4);
+        }
+        case 'limas_segiempat': {
+          // Kerucut 4 sisi yang diputar membentuk piramida
+          geometry = new THREE.CylinderGeometry(0, 1.9, 2.8, 4);
+          geometry.rotateY(Math.PI / 4);
           const b = 1.34;
-          vertexPositions = [
+          vertexCoords = [
             [0, 1.4, 0], // Titik Puncak
             [-b, -1.4, 0], [b, -1.4, 0], [0, -1.4, -b], [0, -1.4, b]
           ];
           break;
-
-        case 'prisma_segitiga':
-          geo = new THREE.CylinderGeometry(1.6, 1.6, 2.8, 3);
-          // Berikan orientasi stabil
+        }
+        case 'prisma_segitiga': {
+          geometry = new THREE.CylinderGeometry(1.6, 1.6, 2.8, 3);
           const r = 1.6, h = 1.4;
           for (let i = 0; i < 3; i++) {
             const angle = (i * 2 * Math.PI) / 3 - Math.PI / 2;
             const vx = Math.cos(angle) * r;
             const vz = Math.sin(angle) * r;
-            vertexPositions.push([vx, h, vz]);
-            vertexPositions.push([vx, -h, vz]);
+            vertexCoords.push([vx, h, vz], [vx, -h, vz]);
           }
           break;
-
-        default:
-          geo = new THREE.BoxGeometry(2, 2, 2);
-      }
-
-      return { geometry: geo, vertices: vertexPositions };
-    }
-
-    function render3DShape(shapeId, customColor = null) {
-      if (!currentMeshGroup) return;
-
-      // Bersihkan mesh sebelumnya
-      while (currentMeshGroup.children.length > 0) {
-        const obj = currentMeshGroup.children[0];
-        if (obj.geometry) obj.geometry.dispose();
-        if (obj.material) {
-          if (Array.isArray(obj.material)) {
-            obj.material.forEach(m => m.dispose());
-          } else {
-            obj.material.dispose();
-          }
         }
-        currentMeshGroup.remove(obj);
+        default:
+          geometry = new THREE.BoxGeometry(2, 2, 2);
       }
 
-      const info = SHAPES_DATA[shapeId] || SHAPES_DATA.kubus;
-      const { geometry, vertices } = createShapeGeometry(shapeId);
-      const chosenColor = customColor !== null ? customColor : info.color;
-
-      // Material utama
-      const meshMat = new THREE.MeshStandardMaterial({
-        color: chosenColor,
-        roughness: 0.35,
-        metalness: 0.1,
-        transparent: isTransparentMode,
-        opacity: isTransparentMode ? 0.45 : 1.0,
-        wireframe: isWireframeMode
-      });
-
-      const mainMesh = new THREE.Mesh(geometry, meshMat);
-      mainMesh.castShadow = true;
-      mainMesh.receiveShadow = true;
-      currentMeshGroup.add(mainMesh);
-
-      // Garis rusuk tegas (Edges Geometry)
-      if (shapeId !== 'bola' && !isWireframeMode) {
-        const thresholdAngle = (shapeId === 'tabung' || shapeId === 'kerucut') ? 25 : 15;
-        const edgesGeo = new THREE.EdgesGeometry(geometry, thresholdAngle);
-        const lineMat = new THREE.LineBasicMaterial({
-          color: 0x0f172a,
-          linewidth: 2.5
-        });
-        const wireframeLines = new THREE.LineSegments(edgesGeo, lineMat);
-        currentMeshGroup.add(wireframeLines);
-      }
-
-      // Titik sudut (Highlight Sphere) untuk pembelajaran
-      if (isVerticesHighlight && vertices.length > 0) {
-        const sphereGeo = new THREE.SphereGeometry(0.12, 16, 16);
-        const vertexMat = new THREE.MeshBasicMaterial({ color: 0xfff000 });
-
-        vertices.forEach(pos => {
-          const vMesh = new THREE.Mesh(sphereGeo, vertexMat);
-          vMesh.position.set(pos[0], pos[1], pos[2]);
-          currentMeshGroup.add(vMesh);
-        });
-      }
-
-      // Reset rotasi grup ke sudut menarik
-      currentMeshGroup.rotation.x = 0.35;
-      currentMeshGroup.rotation.y = 0.55;
+      return { geometry, vertexCoords };
     }
 
-    let isDragging = false;
-    let previousMousePosition = { x: 0, y: 0 };
+    function display3DShape(shapeId, customColorHex = null) {
+      if (!mainObjectGroup) return;
 
-    function setupCanvasControls() {
-      const dom = renderer.domElement;
+      // Hapus mesh sebelumnya dari memori
+      while (mainObjectGroup.children.length > 0) {
+        const child = mainObjectGroup.children[0];
+        if (child.geometry) child.geometry.dispose();
+        if (child.material) {
+          if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
+          else child.material.dispose();
+        }
+        mainObjectGroup.remove(child);
+      }
 
-      // Mouse Drag
-      dom.addEventListener('mousedown', (e) => {
-        isDragging = true;
-        previousMousePosition = { x: e.clientX, y: e.clientY };
-        autoRotate = false;
-        updateRotateButtonUI();
+      const shapeMeta = GEOMETRY_DATABASE[shapeId] || GEOMETRY_DATABASE.kubus;
+      const { geometry, vertexCoords } = buildShapeGeometry(shapeId);
+      const activeColor = customColorHex !== null ? customColorHex : shapeMeta.color;
+
+      // Material Utama
+      const material = new THREE.MeshStandardMaterial({
+        color: activeColor,
+        roughness: 0.35,
+        metalness: 0.15,
+        wireframe: labWireframeActive,
+        transparent: labTransparentActive,
+        opacity: labTransparentActive ? 0.45 : 1.0
       });
 
-      window.addEventListener('mousemove', (e) => {
-        if (!isDragging || !currentMeshGroup) return;
-        const deltaX = e.clientX - previousMousePosition.x;
-        const deltaY = e.clientY - previousMousePosition.y;
+      const mesh = new THREE.Mesh(geometry, material);
+      mainObjectGroup.add(mesh);
 
-        currentMeshGroup.rotation.y += deltaX * 0.008;
-        currentMeshGroup.rotation.x += deltaY * 0.008;
+      // Garis Rusuk Kontras (EdgesGeometry)
+      if (shapeId !== 'bola' && !labWireframeActive) {
+        const edgeAngle = (shapeId === 'tabung' || shapeId === 'kerucut') ? 25 : 15;
+        const edges = new THREE.EdgesGeometry(geometry, edgeAngle);
+        const edgeMaterial = new THREE.LineBasicMaterial({
+          color: 0x0f172a,
+          linewidth: 2
+        });
+        const edgeLines = new THREE.LineSegments(edges, edgeMaterial);
+        mainObjectGroup.add(edgeLines);
+      }
 
-        previousMousePosition = { x: e.clientX, y: e.clientY };
+      // Penyorot Titik Sudut Kuning Bercahaya
+      if (labVerticesActive && vertexCoords.length > 0) {
+        const sphereGeo = new THREE.SphereGeometry(0.12, 16, 16);
+        const sphereMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
+
+        vertexCoords.forEach(pos => {
+          const pointMesh = new THREE.Mesh(sphereGeo, sphereMat);
+          pointMesh.position.set(pos[0], pos[1], pos[2]);
+          mainObjectGroup.add(pointMesh);
+        });
+      }
+
+      // Reset posisi kemiringan visual
+      mainObjectGroup.rotation.set(0.35, 0.55, 0);
+    }
+
+    /**
+     * KONTROL SENTUH & POINTER UNTUK ROTASI & ZOOM
+     * Bebas ketergantungan OrbitControls.js sehingga 100% tahan banting
+     */
+    let isPointerDragging = false;
+    let prevPointerPos = { x: 0, y: 0 };
+    let activePointers = new Map();
+    let initialPinchDist = null;
+
+    function setupPointerControls(domElement) {
+      domElement.style.touchAction = 'none';
+
+      // Pointer Down
+      domElement.addEventListener('pointerdown', (e) => {
+        activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        if (activePointers.size === 1) {
+          isPointerDragging = true;
+          prevPointerPos = { x: e.clientX, y: e.clientY };
+          isAutoRotating = false;
+          updateAutoRotateUI();
+        } else if (activePointers.size === 2) {
+          isPointerDragging = false;
+          const points = Array.from(activePointers.values());
+          initialPinchDist = Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
+        }
       });
 
-      window.addEventListener('mouseup', () => {
-        isDragging = false;
+      // Pointer Move
+      window.addEventListener('pointermove', (e) => {
+        if (!activePointers.has(e.pointerId)) return;
+        activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+        if (activePointers.size === 1 && isPointerDragging && mainObjectGroup) {
+          const deltaX = e.clientX - prevPointerPos.x;
+          const deltaY = e.clientY - prevPointerPos.y;
+
+          mainObjectGroup.rotation.y += deltaX * 0.009;
+          mainObjectGroup.rotation.x += deltaY * 0.009;
+
+          prevPointerPos = { x: e.clientX, y: e.clientY };
+        } else if (activePointers.size === 2 && initialPinchDist) {
+          const points = Array.from(activePointers.values());
+          const currentDist = Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
+          const diff = initialPinchDist - currentDist;
+
+          camera.position.z += diff * 0.012;
+          camera.position.z = Math.max(3.5, Math.min(12, camera.position.z));
+          initialPinchDist = currentDist;
+        }
       });
+
+      // Pointer Up / Cancel
+      const handlePointerEnd = (e) => {
+        activePointers.delete(e.pointerId);
+        if (activePointers.size < 2) initialPinchDist = null;
+        if (activePointers.size === 0) isPointerDragging = false;
+      };
+
+      window.addEventListener('pointerup', handlePointerEnd);
+      window.addEventListener('pointercancel', handlePointerEnd);
 
       // Zoom Mouse Wheel
-      dom.addEventListener('wheel', (e) => {
+      domElement.addEventListener('wheel', (e) => {
         e.preventDefault();
         camera.position.z += e.deltaY * 0.005;
-        camera.position.z = Math.max(3.8, Math.min(12, camera.position.z));
+        camera.position.z = Math.max(3.5, Math.min(12, camera.position.z));
       }, { passive: false });
-
-      // Sentuhan Mobile (Touch)
-      let initialTouchDist = 0;
-
-      dom.addEventListener('touchstart', (e) => {
-        if (e.touches.length === 1) {
-          isDragging = true;
-          previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-          autoRotate = false;
-          updateRotateButtonUI();
-        } else if (e.touches.length === 2) {
-          initialTouchDist = Math.hypot(
-            e.touches[0].clientX - e.touches[1].clientX,
-            e.touches[0].clientY - e.touches[1].clientY
-          );
-        }
-      }, { passive: true });
-
-      dom.addEventListener('touchmove', (e) => {
-        if (e.touches.length === 1 && isDragging && currentMeshGroup) {
-          const deltaX = e.touches[0].clientX - previousMousePosition.x;
-          const deltaY = e.touches[0].clientY - previousMousePosition.y;
-
-          currentMeshGroup.rotation.y += deltaX * 0.01;
-          currentMeshGroup.rotation.x += deltaY * 0.01;
-
-          previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-        } else if (e.touches.length === 2) {
-          const currentDist = Math.hypot(
-            e.touches[0].clientX - e.touches[1].clientX,
-            e.touches[0].clientY - e.touches[1].clientY
-          );
-          const diff = initialTouchDist - currentDist;
-          camera.position.z += diff * 0.01;
-          camera.position.z = Math.max(3.8, Math.min(12, camera.position.z));
-          initialTouchDist = currentDist;
-        }
-      }, { passive: true });
-
-      dom.addEventListener('touchend', () => {
-        isDragging = false;
-      });
     }
 
-    function toggleAutoRotate() {
-      autoRotate = !autoRotate;
-      updateRotateButtonUI();
-      playSoundClick();
+    function toggleCanvasAutoSpin() {
+      playSfx('click');
+      isAutoRotating = !isAutoRotating;
+      updateAutoRotateUI();
     }
 
-    function updateRotateButtonUI() {
-      const btn = document.getElementById('btn-autorotate');
-      if (autoRotate) {
-        btn.classList.add('text-indigo-400', 'border-indigo-500/40');
-        btn.innerHTML = '🔄 Putar';
+    function updateAutoRotateUI() {
+      const btn = document.getElementById('btn-toggle-spin');
+      const text = document.getElementById('spin-text');
+      if (isAutoRotating) {
+        btn.classList.add('text-indigo-400');
+        text.textContent = 'Putar';
       } else {
-        btn.classList.remove('text-indigo-400', 'border-indigo-500/40');
-        btn.innerHTML = '⏸️ Diam';
+        btn.classList.remove('text-indigo-400');
+        text.textContent = 'Diam';
       }
     }
 
-    function resetCameraView() {
-      playSoundClick();
+    function resetCameraOrientation() {
+      playSfx('click');
       camera.position.set(0, 2.2, 7.5);
       camera.lookAt(0, 0, 0);
-      if (currentMeshGroup) {
-        currentMeshGroup.rotation.set(0.35, 0.55, 0);
+      if (mainObjectGroup) {
+        mainObjectGroup.rotation.set(0.35, 0.55, 0);
       }
     }
 
-    function animate() {
-      requestAnimationFrame(animate);
+    function renderLoop() {
+      requestAnimationFrame(renderLoop);
 
-      if (autoRotate && currentMeshGroup && !isDragging) {
-        currentMeshGroup.rotation.y += 0.008;
+      if (isAutoRotating && mainObjectGroup && !isPointerDragging) {
+        mainObjectGroup.rotation.y += 0.008;
       }
 
       renderer.render(scene, camera);
     }
 
+    /**
+     * SISTEM GAMEPLAY & LOGIKA PERTANYAAN
+     */
     let gameState = {
-      mode: 'guess-shape',
+      mode: 'guess-name',
       score: 0,
       streak: 0,
       maxStreak: 0,
       lives: 3,
+      questionIndex: 1,
       totalAnswered: 0,
       correctCount: 0,
-      questionNumber: 1,
-      currentQuestionData: null,
-      isAnswered: false
+      currentAnswerKey: '',
+      isQuestionLocked: false
     };
 
-    function updateStatsUI() {
-      document.getElementById('score-counter').textContent = gameState.score;
-      document.getElementById('streak-counter').textContent = `${gameState.streak}x`;
+    function updateStatsDisplay() {
+      document.getElementById('score-display').textContent = gameState.score;
+      document.getElementById('streak-display').textContent = `${gameState.streak}x`;
       
       const hearts = '❤️'.repeat(Math.max(0, gameState.lives)) + '🖤'.repeat(Math.max(0, 3 - gameState.lives));
-      document.getElementById('lives-container').textContent = hearts;
+      document.getElementById('lives-display').textContent = hearts;
     }
 
-    function resetGameStats() {
-      gameState.score = 0;
-      gameState.streak = 0;
-      gameState.maxStreak = 0;
-      gameState.lives = 3;
-      gameState.totalAnswered = 0;
-      gameState.correctCount = 0;
-      gameState.questionNumber = 1;
-      gameState.isAnswered = false;
-      updateStatsUI();
-    }
+    function prepareNextQuestion() {
+      gameState.isQuestionLocked = false;
+      document.getElementById('quiz-feedback-box').classList.add('hidden');
+      document.getElementById('quiz-number-indicator').textContent = gameState.questionIndex;
 
-    function generateQuestion() {
-      gameState.isAnswered = false;
-      document.getElementById('feedback-card').classList.add('hidden');
-      document.getElementById('question-index').textContent = gameState.questionNumber;
+      // Pilih bangun acak
+      const randomKey = SHAPE_KEYS[Math.floor(Math.random() * SHAPE_KEYS.length)];
+      const shape = GEOMETRY_DATABASE[randomKey];
 
-      const randomShapeKey = SHAPE_KEYS[Math.floor(Math.random() * SHAPE_KEYS.length)];
-      const shape = SHAPES_DATA[randomShapeKey];
+      // Tampilkan bangun di 3D kanvas
+      display3DShape(shape.id);
 
-      // Perbarui tampilan 3D sesuai bangun yang dipilih
-      render3DShape(shape.id);
-
-      if (gameState.mode === 'guess-shape') {
-        setupGuessShapeQuestion(shape);
-      } else if (gameState.mode === 'guess-property') {
-        setupGuessPropertyQuestion(shape);
-      } else if (gameState.mode === 'formula-quiz') {
-        setupFormulaQuizQuestion();
+      if (gameState.mode === 'guess-name') {
+        buildMode1GuessName(shape);
+      } else if (gameState.mode === 'guess-properties') {
+        buildMode2GuessProperties(shape);
+      } else if (gameState.mode === 'quiz-formula') {
+        buildMode3QuizFormula();
       }
     }
 
-    // MODE 1: Tebak Nama Bangun Ruang
-    function setupGuessShapeQuestion(targetShape) {
-      document.getElementById('canvas-shape-label').textContent = 'Tebak Bangun Ini';
-      document.getElementById('quiz-badge').textContent = 'Tebak Nama Bangun';
-      document.getElementById('quiz-question-title').textContent = 'Apakah nama bangun ruang 3D yang sedang ditampilkan?';
-      document.getElementById('quiz-question-desc').textContent = 'Amati bentuk permukaan, bidang sisi, dan keunikan bentuknya dengan memutar model 3D!';
+    // Mode 1: Tebak Nama Bangun
+    function buildMode1GuessName(shape) {
+      document.getElementById('canvas-status-badge').textContent = 'Tebak Bangun Ini';
+      document.getElementById('quiz-category-tag').textContent = 'Tebak Nama Bangun';
+      document.getElementById('quiz-question-title').textContent = 'Bangun ruang 3D apakah yang sedang ditampilkan di sebelah kiri?';
+      document.getElementById('quiz-question-subtitle').textContent = 'Putar objek dan cermati seluruh sisi dan bentuk alasnya!';
 
-      // Pilihan ganda: targetShape + 3 pilihan salah
-      const choices = [targetShape.name];
+      const choices = [shape.name];
       const otherNames = SHAPE_KEYS
-        .map(k => SHAPES_DATA[k].name)
-        .filter(name => name !== targetShape.name);
+        .filter(k => k !== shape.id)
+        .map(k => GEOMETRY_DATABASE[k].name);
       
       shuffleArray(otherNames);
       choices.push(otherNames[0], otherNames[1], otherNames[2]);
       shuffleArray(choices);
 
-      gameState.currentQuestionData = {
-        correctAnswer: targetShape.name,
-        explanation: `${targetShape.name}: Memiliki ${targetShape.sisi} sisi, ${targetShape.rusuk} rusuk, dan ${targetShape.titikSudut} titik sudut. Contoh nyata: ${targetShape.contoh}.`
-      };
+      gameState.currentAnswerKey = shape.name;
+      gameState.currentExplanation = `${shape.name}: Memiliki ${shape.sisi} sisi, ${shape.rusuk} rusuk, dan ${shape.titikSudut} titik sudut. Contoh nyata: ${shape.examples}.`;
 
-      renderOptionButtons(choices);
+      renderQuizOptionButtons(choices);
     }
 
-    // MODE 2: Tebak Unsur & Ciri
-    function setupGuessPropertyQuestion(targetShape) {
-      document.getElementById('canvas-shape-label').textContent = targetShape.name;
-      document.getElementById('quiz-badge').textContent = 'Unsur & Karakteristik';
+    // Mode 2: Unsur & Sifat Bangun
+    function buildMode2GuessProperties(shape) {
+      document.getElementById('canvas-status-badge').textContent = shape.name;
+      document.getElementById('quiz-category-tag').textContent = 'Unsur & Karakteristik';
 
-      const questionTypes = ['sisi', 'rusuk', 'titikSudut'];
-      const chosenType = questionTypes[Math.floor(Math.random() * questionTypes.length)];
+      const propertyTypes = ['sisi', 'rusuk', 'titikSudut'];
+      const pickedType = propertyTypes[Math.floor(Math.random() * propertyTypes.length)];
 
-      let questionText = '';
-      let correctVal = 0;
-      let labelUnit = '';
+      let questionTitle = '';
+      let correctNumber = 0;
+      let unit = '';
 
-      if (chosenType === 'sisi') {
-        questionText = `Berapakah jumlah SISI pada bangun ruang ${targetShape.name}?`;
-        correctVal = targetShape.sisi;
-        labelUnit = 'Sisi';
-      } else if (chosenType === 'rusuk') {
-        questionText = `Berapakah jumlah RUSUK pada bangun ruang ${targetShape.name}?`;
-        correctVal = targetShape.rusuk;
-        labelUnit = 'Rusuk';
+      if (pickedType === 'sisi') {
+        questionTitle = `Berapakah jumlah SISI pada bangun ruang ${shape.name}?`;
+        correctNumber = shape.sisi;
+        unit = 'Sisi';
+      } else if (pickedType === 'rusuk') {
+        questionTitle = `Berapakah jumlah RUSUK pada bangun ruang ${shape.name}?`;
+        correctNumber = shape.rusuk;
+        unit = 'Rusuk';
       } else {
-        questionText = `Berapakah jumlah TITIK SUDUT pada bangun ruang ${targetShape.name}?`;
-        correctVal = targetShape.titikSudut;
-        labelUnit = 'Titik Sudut';
+        questionTitle = `Berapakah jumlah TITIK SUDUT pada bangun ruang ${shape.name}?`;
+        correctNumber = shape.titikSudut;
+        unit = 'Titik Sudut';
       }
 
-      document.getElementById('quiz-question-title').textContent = questionText;
-      document.getElementById('quiz-question-desc').textContent = `Hitung dengan cermat dengan memutar bangun 3D ${targetShape.name} di layar!`;
+      document.getElementById('quiz-question-title').textContent = questionTitle;
+      document.getElementById('quiz-question-subtitle').textContent = `Hitung dengan seksama seluruh bagian bangun ruang ${shape.name}!`;
 
-      // Buat 4 angka pilihan yang masuk akal
-      const choicesSet = new Set();
-      choicesSet.add(`${correctVal} ${labelUnit}`);
+      const optionsSet = new Set();
+      optionsSet.add(`${correctNumber} ${unit}`);
 
-      const potentialNumbers = [0, 1, 2, 3, 5, 6, 8, 9, 12].filter(n => n !== correctVal);
-      shuffleArray(potentialNumbers);
+      const fallbackPool = [0, 1, 2, 3, 5, 6, 8, 9, 12].filter(n => n !== correctNumber);
+      shuffleArray(fallbackPool);
 
-      for (let num of potentialNumbers) {
-        choicesSet.add(`${num} ${labelUnit}`);
-        if (choicesSet.size >= 4) break;
+      for (let n of fallbackPool) {
+        optionsSet.add(`${n} ${unit}`);
+        if (optionsSet.size >= 4) break;
       }
 
-      const choices = Array.from(choicesSet);
+      const choices = Array.from(optionsSet);
       shuffleArray(choices);
 
-      gameState.currentQuestionData = {
-        correctAnswer: `${correctVal} ${labelUnit}`,
-        explanation: `${targetShape.name} memiliki ${targetShape.sisi} sisi, ${targetShape.rusuk} rusuk, dan ${targetShape.titikSudut} titik sudut. (${targetShape.sisiDesc})`
-      };
+      gameState.currentAnswerKey = `${correctNumber} ${unit}`;
+      gameState.currentExplanation = `${shape.name} mempunyai ${shape.sisi} sisi, ${shape.rusuk} rusuk, dan ${shape.titikSudut} titik sudut. (${shape.explanation})`;
 
-      renderOptionButtons(choices);
+      renderQuizOptionButtons(choices);
     }
 
-    // MODE 3: Tantangan Rumus & Hitung
-    function setupFormulaQuizQuestion() {
-      document.getElementById('quiz-badge').textContent = 'Tantangan Rumus & Hitung';
+    // Mode 3: Tantangan Perhitungan Rumus
+    function buildMode3QuizFormula() {
+      document.getElementById('quiz-category-tag').textContent = 'Tantangan Rumus & Hitung';
 
-      const calculationQuestions = [
+      const formulaQuizBank = [
         {
           shapeKey: 'kubus',
-          q: 'Sebuah dadu Kubus memiliki panjang rusuk 6 cm. Berapakah volumenya?',
-          desc: 'Gunakan rumus Volume Kubus = s × s × s',
-          correct: '216 cm³',
-          options: ['216 cm³', '36 cm³', '144 cm³', '256 cm³'],
-          exp: 'Volume Kubus = s³ = 6 × 6 × 6 = 216 cm³.'
+          q: 'Sebuah kubus memiliki rusuk 5 cm. Berapakah volumenya?',
+          sub: 'Rumus: Volume Kubus = s × s × s = s³',
+          correct: '125 cm³',
+          opts: ['125 cm³', '25 cm³', '150 cm³', '100 cm³'],
+          exp: 'Volume Kubus = s³ = 5 × 5 × 5 = 125 cm³.'
         },
         {
           shapeKey: 'kubus',
-          q: 'Sebuah kubus memiliki rusuk 5 cm. Berapakah luas seluruh permukaannya?',
-          desc: 'Gunakan rumus Luas Permukaan Kubus = 6 × s²',
-          correct: '150 cm²',
-          options: ['150 cm²', '125 cm²', '100 cm²', '180 cm²'],
-          exp: 'Luas = 6 × s² = 6 × (5 × 5) = 6 × 25 = 150 cm².'
+          q: 'Sebuah kubus mempunyai panjang rusuk 4 cm. Berapakah luas permukaannya?',
+          sub: 'Rumus: Luas Permukaan = 6 × s²',
+          correct: '96 cm²',
+          opts: ['96 cm²', '64 cm²', '48 cm²', '100 cm²'],
+          exp: 'Luas = 6 × s² = 6 × (4 × 4) = 6 × 16 = 96 cm².'
         },
         {
           shapeKey: 'balok',
-          q: 'Balok berukuran panjang 10 cm, lebar 5 cm, dan tinggi 4 cm. Berapakah volumenya?',
-          desc: 'Gunakan rumus Volume Balok = p × l × t',
-          correct: '200 cm³',
-          options: ['200 cm³', '100 cm³', '240 cm³', '180 cm³'],
-          exp: 'Volume Balok = 10 × 5 × 4 = 200 cm³.'
+          q: 'Balok memiliki panjang 8 cm, lebar 5 cm, dan tinggi 3 cm. Berapakah volumenya?',
+          sub: 'Rumus: Volume Balok = p × l × t',
+          correct: '120 cm³',
+          opts: ['120 cm³', '100 cm³', '80 cm³', '140 cm³'],
+          exp: 'Volume Balok = p × l × t = 8 × 5 × 3 = 120 cm³.'
         },
         {
           shapeKey: 'tabung',
-          q: 'Rumus manakah yang tepat untuk menghitung Volume Tabung?',
-          desc: 'Ingat kembali luas alas lingkaran dikalikan tinggi tabung',
+          q: 'Manakah rumus matematika yang tepat untuk menghitung Volume Tabung?',
+          sub: 'Perhatikan bidang alas lingkaran dikali tinggi tabung',
           correct: 'V = π × r² × t',
-          options: ['V = π × r² × t', 'V = ⅓ × π × r² × t', 'V = 2 × π × r × t', 'V = 4/3 × π × r³'],
+          opts: ['V = π × r² × t', 'V = ⅓ × π × r² × t', 'V = 2 × π × r × t', 'V = 4/3 × π × r³'],
           exp: 'Volume Tabung = Luas Alas Lingkaran (π × r²) dikali tinggi (t).'
         },
         {
           shapeKey: 'kerucut',
-          q: 'Rumus manakah yang tepat untuk menghitung Volume Kerucut?',
-          desc: 'Kerucut adalah sepertiga dari volume tabung dengan alas & tinggi sama',
+          q: 'Manakah rumus volume Kerucut yang benar?',
+          sub: 'Kerucut memiliki volume sepertiga dari volume tabung berukuran sama',
           correct: 'V = ⅓ × π × r² × t',
-          options: ['V = ⅓ × π × r² × t', 'V = π × r² × t', 'V = ½ × a × t', 'V = 4/3 × π × r³'],
-          exp: 'Volume Kerucut adalah sepertiga dari volume tabung: V = ⅓ × π × r² × t.'
-        },
-        {
-          shapeKey: 'bola',
-          q: 'Manakah rumus Luas Permukaan Bola yang benar?',
-          desc: 'Luas permukaan bola setara dengan 4 kali luas lingkaran berpusat sama',
-          correct: 'L = 4 × π × r²',
-          options: ['L = 4 × π × r²', 'L = 4/3 × π × r³', 'L = 2 × π × r²', 'L = π × r²'],
-          exp: 'Luas Permukaan Bola = 4 × π × r².'
+          opts: ['V = ⅓ × π × r² × t', 'V = π × r² × t', 'V = ½ × π × r² × t', 'V = 4/3 × π × r³'],
+          exp: 'Volume Kerucut adalah sepertiga dari tabung: V = ⅓ × π × r² × t.'
         },
         {
           shapeKey: 'limas_segiempat',
-          q: 'Sebuah limas segiempat memiliki luas alas 30 cm² dan tinggi 9 cm. Berapakah volumenya?',
-          desc: 'Gunakan rumus Volume Limas = ⅓ × Luas Alas × tinggi',
-          correct: '90 cm³',
-          options: ['90 cm³', '270 cm³', '120 cm³', '60 cm³'],
-          exp: 'Volume Limas = ⅓ × Luas Alas × t = ⅓ × 30 × 9 = 90 cm³.'
+          q: 'Limas segiempat memiliki luas alas 24 cm² dan tinggi 9 cm. Berapakah volumenya?',
+          sub: 'Rumus: Volume Limas = ⅓ × Luas Alas × tinggi',
+          correct: '72 cm³',
+          opts: ['72 cm³', '216 cm³', '96 cm³', '48 cm³'],
+          exp: 'Volume Limas = ⅓ × 24 × 9 = ⅓ × 216 = 72 cm³.'
         },
         {
           shapeKey: 'prisma_segitiga',
-          q: 'Tenda prisma segitiga memiliki luas alas segitiga 12 m² dan panjang tenda 4 m. Berapakah volumenya?',
-          desc: 'Gunakan rumus Volume Prisma = Luas Alas × tinggi/panjang',
-          correct: '48 m³',
-          options: ['48 m³', '24 m³', '96 m³', '36 m³'],
-          exp: 'Volume Prisma Segitiga = Luas Alas Segitiga × t = 12 × 4 = 48 m³.'
+          q: 'Tenda prisma segitiga memiliki luas alas segitiga 15 m² dan panjang 6 m. Berapakah volumenya?',
+          sub: 'Rumus: Volume Prisma = Luas Alas × panjang/tinggi',
+          correct: '90 m³',
+          opts: ['90 m³', '45 m³', '180 m³', '60 m³'],
+          exp: 'Volume Prisma = Luas Alas × t = 15 × 6 = 90 m³.'
         }
       ];
 
-      const item = calculationQuestions[Math.floor(Math.random() * calculationQuestions.length)];
-      render3DShape(item.shapeKey);
-      document.getElementById('canvas-shape-label').textContent = SHAPES_DATA[item.shapeKey].name;
+      const item = formulaQuizBank[Math.floor(Math.random() * formulaQuizBank.length)];
+      display3DShape(item.shapeKey);
+      document.getElementById('canvas-status-badge').textContent = GEOMETRY_DATABASE[item.shapeKey].name;
 
       document.getElementById('quiz-question-title').textContent = item.q;
-      document.getElementById('quiz-question-desc').textContent = item.desc;
+      document.getElementById('quiz-question-subtitle').textContent = item.sub;
 
-      const choices = [...item.options];
+      const choices = [...item.opts];
       shuffleArray(choices);
 
-      gameState.currentQuestionData = {
-        correctAnswer: item.correct,
-        explanation: item.exp
-      };
+      gameState.currentAnswerKey = item.correct;
+      gameState.currentExplanation = item.exp;
 
-      renderOptionButtons(choices);
+      renderQuizOptionButtons(choices);
     }
 
-    function renderOptionButtons(choices) {
-      const container = document.getElementById('quiz-options-container');
-      container.innerHTML = '';
+    function renderQuizOptionButtons(options) {
+      const grid = document.getElementById('quiz-options-grid');
+      grid.innerHTML = '';
 
-      choices.forEach((choiceText) => {
+      options.forEach(optText => {
         const btn = document.createElement('button');
-        btn.className = 'quiz-opt-btn w-full p-3 sm:p-4 rounded-2xl bg-slate-900/80 hover:bg-indigo-600/30 border border-slate-700/90 hover:border-indigo-500/60 text-slate-200 hover:text-white font-semibold text-xs sm:text-sm text-left transition-all duration-200 active:scale-95 shadow-md flex items-center justify-between group';
+        btn.className = 'opt-btn w-full p-3 sm:p-3.5 rounded-2xl bg-slate-950/80 hover:bg-indigo-600/25 border border-slate-800 hover:border-indigo-500/50 text-slate-200 hover:text-white font-semibold text-xs sm:text-sm text-left transition duration-150 active:scale-95 flex items-center justify-between group shadow-sm';
         btn.innerHTML = `
-          <span class="flex-1">${choiceText}</span>
-          <span class="w-5 h-5 rounded-full border border-slate-600 group-hover:border-indigo-400 flex items-center justify-center text-[10px] text-slate-400 group-hover:text-indigo-300">●</span>
+          <span class="flex-1">${optText}</span>
+          <span class="w-4 h-4 rounded-full border border-slate-700 group-hover:border-indigo-400 flex items-center justify-center text-[10px] text-slate-500 group-hover:text-indigo-300">●</span>
         `;
-        btn.onclick = () => handleAnswerSelect(choiceText, btn);
-        container.appendChild(btn);
+        btn.onclick = () => checkSelectedAnswer(optText, btn);
+        grid.appendChild(btn);
       });
     }
 
-    function handleAnswerSelect(selectedAnswer, selectedBtn) {
-      if (gameState.isAnswered) return;
-      gameState.isAnswered = true;
+    function checkSelectedAnswer(chosenAnswer, clickedBtn) {
+      if (gameState.isQuestionLocked) return;
+      gameState.isQuestionLocked = true;
       gameState.totalAnswered++;
 
-      const isCorrect = selectedAnswer === gameState.currentQuestionData.correctAnswer;
-      const allButtons = document.querySelectorAll('.quiz-opt-btn');
+      const isRight = chosenAnswer === gameState.currentAnswerKey;
+      const allButtons = document.querySelectorAll('.opt-btn');
 
-      // Kunci semua tombol dan beri highlight jawaban benar
-      allButtons.forEach(btn => {
-        btn.disabled = true;
-        const text = btn.querySelector('span').textContent;
-        if (text === gameState.currentQuestionData.correctAnswer) {
-          btn.classList.remove('bg-slate-900/80', 'border-slate-700/90');
-          btn.classList.add('bg-emerald-600/30', 'border-emerald-500', 'text-emerald-200');
+      // Sorot jawaban benar
+      allButtons.forEach(b => {
+        b.disabled = true;
+        const text = b.querySelector('span').textContent;
+        if (text === gameState.currentAnswerKey) {
+          b.classList.remove('bg-slate-950/80', 'border-slate-800');
+          b.classList.add('bg-emerald-600/30', 'border-emerald-500', 'text-emerald-200');
         }
       });
 
-      const feedbackCard = document.getElementById('feedback-card');
-      const feedbackTitle = document.getElementById('feedback-title');
-      const feedbackDesc = document.getElementById('feedback-explanation');
-      const feedbackIcon = document.getElementById('feedback-icon');
+      const feedbackBox = document.getElementById('quiz-feedback-box');
+      const feedbackSymbol = document.getElementById('feedback-symbol');
+      const feedbackHead = document.getElementById('feedback-head');
+      const feedbackDetail = document.getElementById('feedback-detail');
 
-      if (isCorrect) {
-        // BENAR
-        playSoundCorrect();
+      if (isRight) {
+        // JAWABAN BENAR
+        playSfx('correct');
         gameState.correctCount++;
         gameState.streak++;
         if (gameState.streak > gameState.maxStreak) {
           gameState.maxStreak = gameState.streak;
         }
 
-        // Skor dihitung dengan multiplier streak
-        const earnedScore = 100 + (gameState.streak * 25);
-        gameState.score += earnedScore;
+        const bonusScore = 100 + (gameState.streak * 20);
+        gameState.score += bonusScore;
 
-        selectedBtn.classList.remove('bg-slate-900/80', 'border-slate-700/90');
-        selectedBtn.classList.add('bg-emerald-600/40', 'border-emerald-400', 'text-white', 'shadow-emerald-500/20');
+        clickedBtn.classList.remove('bg-slate-950/80', 'border-slate-800');
+        clickedBtn.classList.add('bg-emerald-600/40', 'border-emerald-400', 'text-white');
 
-        feedbackCard.className = 'p-3.5 sm:p-4 rounded-2xl border transition-all duration-300 bg-emerald-950/40 border-emerald-500/50 text-emerald-100';
-        feedbackIcon.textContent = '🎉';
-        feedbackTitle.textContent = `Tepat Sekali! (+${earnedScore} Poin)`;
+        feedbackBox.className = 'p-4 rounded-2xl border transition-all duration-300 bg-emerald-950/40 border-emerald-500/40 text-emerald-100';
+        feedbackSymbol.textContent = '🎉';
+        feedbackHead.textContent = `Luar Biasa, Tepat! (+${bonusScore} Poin)`;
 
-        // Luncurkan confetti jika streak kelipatan 3 atau tinggi
-        if (gameState.streak >= 3 && typeof confetti === 'function') {
-          confetti({
-            particleCount: 50,
-            spread: 60,
-            origin: { y: 0.7 }
-          });
+        if (gameState.streak >= 2) {
+          triggerConfettiBurst();
         }
       } else {
-        // SALAH
-        playSoundWrong();
+        // JAWABAN SALAH
+        playSfx('wrong');
         gameState.streak = 0;
         gameState.lives--;
 
-        selectedBtn.classList.remove('bg-slate-900/80', 'border-slate-700/90');
-        selectedBtn.classList.add('bg-rose-600/40', 'border-rose-500', 'text-rose-200');
+        clickedBtn.classList.remove('bg-slate-950/80', 'border-slate-800');
+        clickedBtn.classList.add('bg-rose-600/40', 'border-rose-500', 'text-rose-200');
 
-        feedbackCard.className = 'p-3.5 sm:p-4 rounded-2xl border transition-all duration-300 bg-rose-950/40 border-rose-500/50 text-rose-100';
-        feedbackIcon.textContent = '❌';
-        feedbackTitle.textContent = 'Jawaban Kurang Tepat';
+        feedbackBox.className = 'p-4 rounded-2xl border transition-all duration-300 bg-rose-950/40 border-rose-500/40 text-rose-100';
+        feedbackSymbol.textContent = '❌';
+        feedbackHead.textContent = 'Jawaban Kurang Tepat';
       }
 
-      feedbackDesc.textContent = gameState.currentQuestionData.explanation;
-      feedbackCard.classList.remove('hidden');
+      feedbackDetail.textContent = gameState.currentExplanation;
+      feedbackBox.classList.remove('hidden');
 
-      updateStatsUI();
+      updateStatsDisplay();
 
-      // Cek Game Over jika nyawa habis
+      // Cek Game Over
       if (gameState.lives <= 0) {
-        setTimeout(() => {
-          showResultModal(false);
-        }, 1200);
+        setTimeout(() => triggerGameOverModal(), 1200);
       }
     }
 
-    function nextQuestion() {
-      playSoundClick();
-      gameState.questionNumber++;
-      generateQuestion();
+    function advanceNextQuizQuestion() {
+      playSfx('click');
+      gameState.questionIndex++;
+      prepareNextQuestion();
     }
 
-    function setupLabModeUI() {
-      const container = document.getElementById('lab-shape-selector');
-      container.innerHTML = '';
+    /**
+     * PENGATURAN LAB 3D & NAVIGASI MODE
+     */
+    function setupLabPanelUI() {
+      const grid = document.getElementById('lab-shapes-grid');
+      grid.innerHTML = '';
 
       SHAPE_KEYS.forEach(key => {
-        const shape = SHAPES_DATA[key];
-        const btn = document.createElement('button');
-        const isActive = key === activeLabShapeId;
+        const shape = GEOMETRY_DATABASE[key];
+        const isActive = key === currentLabShapeKey;
 
+        const btn = document.createElement('button');
         btn.className = `p-2 rounded-xl text-xs font-bold transition flex flex-col items-center justify-center gap-1 border ${
           isActive
-            ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-600/30'
-            : 'bg-slate-800/80 hover:bg-slate-700 text-slate-300 border-slate-700'
+            ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-600/25'
+            : 'bg-slate-950/80 hover:bg-slate-800 text-slate-300 border-slate-800'
         }`;
         btn.innerHTML = `<span>📐</span><span class="truncate w-full text-center">${shape.name}</span>`;
 
         btn.onclick = () => {
-          playSoundClick();
-          activeLabShapeId = key;
-          setupLabModeUI();
-          updateLabDetails();
-          render3DShape(key);
+          playSfx('click');
+          currentLabShapeKey = key;
+          setupLabPanelUI();
+          updateLabAttributes();
+          display3DShape(key);
         };
 
-        container.appendChild(btn);
+        grid.appendChild(btn);
       });
 
-      updateLabDetails();
+      updateLabAttributes();
     }
 
-    function updateLabDetails() {
-      const shape = SHAPES_DATA[activeLabShapeId];
-      document.getElementById('canvas-shape-label').textContent = `Lab: ${shape.name}`;
-      document.getElementById('lab-detail-title').textContent = `${shape.name} 3D`;
-      document.getElementById('lab-detail-sisi').textContent = shape.sisi;
-      document.getElementById('lab-detail-rusuk').textContent = shape.rusuk;
-      document.getElementById('lab-detail-sudut').textContent = shape.titikSudut;
-      document.getElementById('lab-detail-volume').textContent = shape.volumeFormula;
-      document.getElementById('lab-detail-luas').textContent = shape.luasFormula;
-      document.getElementById('lab-detail-contoh').textContent = shape.contoh;
+    function updateLabAttributes() {
+      const shape = GEOMETRY_DATABASE[currentLabShapeKey];
+      document.getElementById('canvas-status-badge').textContent = `Lab: ${shape.name}`;
+      document.getElementById('lab-shape-heading').textContent = `${shape.name} 3D`;
+      document.getElementById('lab-stat-sisi').textContent = shape.sisi;
+      document.getElementById('lab-stat-rusuk').textContent = shape.rusuk;
+      document.getElementById('lab-stat-sudut').textContent = shape.titikSudut;
+      document.getElementById('lab-formula-volume').textContent = shape.formulaVol;
+      document.getElementById('lab-formula-surface').textContent = shape.formulaLuas;
+      document.getElementById('lab-real-examples').textContent = shape.examples;
     }
 
-    function toggleWireframeMode() {
-      playSoundClick();
-      isWireframeMode = !isWireframeMode;
-      const btn = document.getElementById('toggle-wireframe-btn');
-      btn.classList.toggle('bg-indigo-600', isWireframeMode);
-      btn.classList.toggle('text-white', isWireframeMode);
-      render3DShape(activeLabShapeId);
+    function toggleLabWireframe() {
+      playSfx('click');
+      labWireframeActive = !labWireframeActive;
+      document.getElementById('btn-lab-wireframe').classList.toggle('bg-indigo-600', labWireframeActive);
+      document.getElementById('btn-lab-wireframe').classList.toggle('text-white', labWireframeActive);
+      display3DShape(currentLabShapeKey);
     }
 
-    function toggleTransparencyMode() {
-      playSoundClick();
-      isTransparentMode = !isTransparentMode;
-      const btn = document.getElementById('toggle-transparent-btn');
-      btn.classList.toggle('bg-indigo-600', isTransparentMode);
-      btn.classList.toggle('text-white', isTransparentMode);
-      render3DShape(activeLabShapeId);
+    function toggleLabVertices() {
+      playSfx('click');
+      labVerticesActive = !labVerticesActive;
+      document.getElementById('btn-lab-vertices').classList.toggle('bg-indigo-600', labVerticesActive);
+      document.getElementById('btn-lab-vertices').classList.toggle('text-white', labVerticesActive);
+      display3DShape(currentLabShapeKey);
     }
 
-    function toggleVerticesHighlight() {
-      playSoundClick();
-      isVerticesHighlight = !isVerticesHighlight;
-      const btn = document.getElementById('toggle-vertices-btn');
-      btn.classList.toggle('bg-indigo-600', isVerticesHighlight);
-      btn.classList.toggle('text-white', isVerticesHighlight);
-      render3DShape(activeLabShapeId);
+    function toggleLabTransparency() {
+      playSfx('click');
+      labTransparentActive = !labTransparentActive;
+      document.getElementById('btn-lab-opacity').classList.toggle('bg-indigo-600', labTransparentActive);
+      document.getElementById('btn-lab-opacity').classList.toggle('text-white', labTransparentActive);
+      display3DShape(currentLabShapeKey);
     }
 
-    function changeColorRandomly() {
-      playSoundClick();
-      const vibrantColors = [0xef4444, 0x10b981, 0x3b82f6, 0x8b5cf6, 0xf59e0b, 0xec4899, 0x06b6d4];
-      const randomColor = vibrantColors[Math.floor(Math.random() * vibrantColors.length)];
-      render3DShape(activeLabShapeId, randomColor);
+    function randomizeLabColor() {
+      playSfx('click');
+      const palette = [0xef4444, 0x10b981, 0x3b82f6, 0x8b5cf6, 0xf59e0b, 0xec4899, 0x06b6d4];
+      const randomHex = palette[Math.floor(Math.random() * palette.length)];
+      display3DShape(currentLabShapeKey, randomHex);
     }
 
-    function switchMode(newMode) {
-      playSoundClick();
-      gameState.mode = newMode;
+    function setGameMode(modeKey) {
+      playSfx('click');
+      gameState.mode = modeKey;
 
-      // Perbarui style tab tombol navigasi
-      const buttons = document.querySelectorAll('.mode-tab-btn');
-      buttons.forEach(btn => {
-        const m = btn.getAttribute('data-mode');
-        if (m === newMode) {
-          btn.className = 'mode-tab-btn active px-3 sm:px-4 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 bg-indigo-600 text-white shadow-lg shadow-indigo-600/30';
+      // Update Nav Buttons
+      document.querySelectorAll('.mode-nav-btn').forEach(btn => {
+        if (btn.getAttribute('data-mode') === modeKey) {
+          btn.className = 'mode-nav-btn px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 bg-indigo-600 text-white shadow-lg shadow-indigo-600/30';
         } else {
-          btn.className = 'mode-tab-btn px-3 sm:px-4 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 bg-slate-700/60 hover:bg-slate-700 text-slate-300';
+          btn.className = 'mode-nav-btn px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap flex items-center gap-1.5 bg-slate-800/80 hover:bg-slate-800 text-slate-300';
         }
       });
 
-      const quizPanel = document.getElementById('quiz-interaction-panel');
-      const labPanel = document.getElementById('lab-interaction-panel');
+      const quizPanel = document.getElementById('panel-quiz-mode');
+      const labPanel = document.getElementById('panel-lab-mode');
 
-      if (newMode === 'lab-3d') {
+      if (modeKey === 'lab-explore') {
         quizPanel.classList.add('hidden');
         labPanel.classList.remove('hidden');
-        setupLabModeUI();
-        render3DShape(activeLabShapeId);
+        setupLabPanelUI();
+        display3DShape(currentLabShapeKey);
       } else {
         labPanel.classList.add('hidden');
         quizPanel.classList.remove('hidden');
-        // Reset opsi visual lab agar kuis tampil standar
-        isWireframeMode = false;
-        isTransparentMode = false;
-        isVerticesHighlight = false;
-        generateQuestion();
+        labWireframeActive = false;
+        labVerticesActive = false;
+        labTransparentActive = false;
+        prepareNextQuestion();
       }
     }
 
-    function showResultModal(isWin) {
-      if (isWin) {
-        playSoundWin();
-        if (typeof confetti === 'function') {
-          confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
-        }
-      }
+    function triggerGameOverModal() {
+      playSfx('victory');
+      triggerConfettiBurst();
 
-      const modal = document.getElementById('modal-result');
-      const badgeIcon = document.getElementById('result-badge-icon');
-      const title = document.getElementById('result-title');
-      const subtitle = document.getElementById('result-subtitle');
-      const stars = document.getElementById('result-stars');
+      const modal = document.getElementById('modal-gameover');
+      document.getElementById('gameover-score').textContent = gameState.score;
+      document.getElementById('gameover-maxstreak').textContent = `${gameState.maxStreak}x`;
 
-      document.getElementById('final-score').textContent = gameState.score;
-      document.getElementById('final-streak').textContent = `${gameState.maxStreak}x`;
-
-      const accuracy = gameState.totalAnswered > 0
-        ? Math.round((gameState.correctCount / gameState.totalAnswered) * 100)
+      const accuracy = gameState.totalAnswered > 0 
+        ? Math.round((gameState.correctCount / gameState.totalAnswered) * 100) 
         : 0;
-      document.getElementById('final-accuracy').textContent = `${accuracy}%`;
-
-      if (gameState.lives <= 0) {
-        badgeIcon.textContent = '💡';
-        title.textContent = 'Nyawa Habis!';
-        subtitle.textContent = 'Jangan menyerah! Pelajari kembali unsur bangun ruang di Laboratorium 3D!';
-        stars.innerHTML = '<span class="text-amber-400">★</span><span class="text-slate-600">★</span><span class="text-slate-600">★</span>';
-      } else if (accuracy >= 80) {
-        badgeIcon.textContent = '👑';
-        title.textContent = 'Master Geometri 3D!';
-        subtitle.textContent = 'Pemahamanmu tentang bangun ruang sangat mengagumkan!';
-        stars.innerHTML = '<span class="text-amber-400">★</span><span class="text-amber-400">★</span><span class="text-amber-400">★</span>';
-      } else {
-        badgeIcon.textContent = '🎉';
-        title.textContent = 'Hebat, Terus Berlatih!';
-        subtitle.textContent = 'Tingkatkan akurasimu untuk meraih 3 bintang penuh!';
-        stars.innerHTML = '<span class="text-amber-400">★</span><span class="text-amber-400">★</span><span class="text-slate-600">★</span>';
-      }
+      document.getElementById('gameover-accuracy').textContent = `${accuracy}%`;
 
       modal.classList.remove('hidden');
       modal.classList.add('flex');
     }
 
-    function restartGameSession() {
-      playSoundClick();
-      closeModal('modal-result');
-      resetGameStats();
-      generateQuestion();
+    function restartFullGameSession() {
+      playSfx('click');
+      dismissModal('modal-gameover');
+      gameState.score = 0;
+      gameState.streak = 0;
+      gameState.maxStreak = 0;
+      gameState.lives = 3;
+      gameState.questionIndex = 1;
+      gameState.totalAnswered = 0;
+      gameState.correctCount = 0;
+      updateStatsDisplay();
+      prepareNextQuestion();
     }
 
-    function closeModal(modalId) {
-      playSoundClick();
+    function dismissModal(modalId) {
+      playSfx('click');
       const m = document.getElementById(modalId);
       m.classList.add('hidden');
       m.classList.remove('flex');
     }
 
-    document.getElementById('btn-guide').addEventListener('click', () => {
-      playSoundClick();
-      const modal = document.getElementById('modal-guide');
+    document.getElementById('btn-open-guide').addEventListener('click', () => {
+      playSfx('click');
+      const modal = document.getElementById('modal-instructions');
       modal.classList.remove('hidden');
       modal.classList.add('flex');
     });
 
-    /* Fungsi Utilitas Shuffle Array */
-    function shuffleArray(array) {
-      for (let i = array.length - 1; i > 0; i--) {
+    function shuffleArray(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+        [arr[i], arr[j]] = [arr[j], arr[i]];
       }
-      return array;
+      return arr;
     }
 
+    /**
+     * INISIALISASI SAAT HALAMAN SELESAI DIMUAT
+     */
     window.addEventListener('DOMContentLoaded', () => {
-      initThree();
-      resetGameStats();
-      generateQuestion();
+      initThreeEngine();
+      updateStatsDisplay();
+      prepareNextQuestion();
     });
   </script>
 </body>
